@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeowVocab </title>
+    <title>MeowVocab AI - IELTS Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -11,10 +11,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .perspective { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
         @keyframes floatCat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
         .cat-float { animation: floatCat 3s infinite ease-in-out; }
     </style>
@@ -23,7 +19,7 @@
 
     <div class="max-w-4xl mx-auto space-y-6">
         
-        <!-- HEADER & MASCOT -->
+        <!-- HEADER & DUAL STREAK GOALS -->
         <header class="bg-white p-5 rounded-3xl border border-pink-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-pink-100/70 rounded-2xl border border-pink-300 flex items-center justify-center p-2 cat-float">
@@ -36,8 +32,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold text-slate-800">MeowVocab Hub</h1>
-                    <p class="text-xs text-slate-400 font-semibold mt-0.5">Organize folders, sets & smart practice modes.</p>
+                    <h1 class="text-xl font-extrabold text-slate-800">MeowVocab AI</h1>
+                    <p class="text-xs text-slate-400 font-semibold">Active Recall & IELTS Speaking Coach</p>
                 </div>
             </div>
 
@@ -49,76 +45,83 @@
                         <div class="text-xs font-extrabold text-amber-700"><span id="streak-count">0</span> Days</div>
                     </div>
                 </div>
-                <div class="bg-emerald-50/70 border border-emerald-200 p-2 rounded-2xl flex-1 md:w-44">
-                    <div class="flex justify-between text-xs font-bold text-emerald-700 mb-1">
-                        <span>Daily Goal</span>
-                        <span><span id="daily-count">0</span>/10</span>
+
+                <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl space-y-1 text-[11px] font-bold">
+                    <div class="flex justify-between gap-3">
+                        <span>📚 Vocab Goal:</span>
+                        <span id="goal-vocab" class="text-purple-600">0/10 words</span>
                     </div>
-                    <div class="w-full bg-emerald-200/50 h-2 rounded-full overflow-hidden">
-                        <div id="daily-progress-bar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="flex justify-between gap-3">
+                        <span>🎙️ Speaking Goal:</span>
+                        <span id="goal-speaking" class="text-indigo-600">0/15 mins</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- VIEW 1: DASHBOARD (FOLDERS & SETS) -->
+        <!-- MAIN NAVIGATION -->
+        <nav class="flex gap-2 bg-slate-200/60 p-1.5 rounded-2xl">
+            <button onclick="switchMainTab('dash')" id="tab-dash" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm">Folders & Sets</button>
+            <button onclick="switchMainTab('speaking')" id="tab-speaking" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800">🎙️ AI Speaking Room (15m)</button>
+        </nav>
+
+        <!-- VIEW 1: DASHBOARD (FOLDERS & SETS WITH SPACED REPETITION) -->
         <div id="view-dashboard" class="space-y-6">
             <div class="flex justify-between items-center">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Your Folders & Sets</h2>
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Your Learning Sets</h2>
                 <div class="flex gap-2">
-                    <button onclick="openFolderModal()" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">+ New Folder</button>
-                    <button onclick="openSetModal()" class="px-3.5 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-xs font-bold transition">+ Create Set</button>
+                    <button onclick="openModal('modal-folder')" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold">+ Folder</button>
+                    <button onclick="openSetModal()" class="px-3.5 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-xs font-bold">+ Create Set</button>
                 </div>
             </div>
 
-            <!-- Folder & Set List Grid -->
-            <div id="folder-list-container" class="space-y-4"></div>
+            <div id="folder-container" class="space-y-4"></div>
         </div>
 
-        <!-- VIEW 2: STUDY MODE SELECTOR -->
-        <div id="view-study-select" class="hidden space-y-6">
-            <button onclick="showDashboard()" class="text-xs font-bold text-slate-400 hover:text-slate-700">← Back to Dashboard</button>
-            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
-                <div>
-                    <h2 id="selected-set-title" class="text-2xl font-extrabold text-slate-800">Set Name</h2>
-                    <p id="selected-set-count" class="text-xs font-bold text-purple-500 mt-1">0 Terms</p>
+        <!-- VIEW 2: AI VOICE SPEAKING ROOM -->
+        <div id="view-speaking" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-800">IELTS Speaking Examiner</h2>
+                        <p class="text-xs text-slate-400 font-semibold">Practice for 15 minutes daily to maintain your streak!</p>
+                    </div>
+                    <span id="speaking-timer" class="text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">15:00 Remaining</span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <!-- Option 1: Deep Retention -->
-                    <div onclick="startStudy('deep')" class="p-5 border-2 border-purple-200 hover:border-purple-500 bg-purple-50/30 rounded-2xl cursor-pointer transition space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg">🧠</span>
-                            <span class="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Recommended</span>
-                        </div>
-                        <h3 class="font-extrabold text-slate-800 text-base">Học Sâu Nhớ Lâu</h3>
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Đa dạng câu hỏi: Multiple choice, Điền từ theo nghĩa & **AI tạo câu Tiếng Việt chứa từ vựng để bạn luyện dịch sang Tiếng Anh**.</p>
+                <div id="chat-history" class="h-64 bg-slate-50 border border-slate-200 p-4 rounded-2xl overflow-y-auto space-y-3 text-xs">
+                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold">
+                        🤖 AI Examiner: "Hello! Today let's talk about environmental preservation. In what ways can individuals reduce their daily carbon footprint?"
                     </div>
+                </div>
 
-                    <!-- Option 2: Cram Mode -->
-                    <div onclick="startStudy('cram')" class="p-5 border-2 border-amber-200 hover:border-amber-500 bg-amber-50/30 rounded-2xl cursor-pointer transition space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg">⚡</span>
-                            <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Quick Review</span>
-                        </div>
-                        <h3 class="font-extrabold text-slate-800 text-base">Học Nhanh Nhớ Vội</h3>
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Ôn tập cấp tốc trước giờ thi. Lật Flashcard linh hoạt & làm trắc nghiệm phản xạ nhanh.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="user-speaking-input" placeholder="Type or speak your IELTS response..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400">
+                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 text-white font-bold rounded-2xl text-xs">Send</button>
+                </div>
+
+                <!-- IELTS 4 Criteria Assessment Display -->
+                <div id="ielts-evaluation-box" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2">
+                    <h4 class="text-xs font-extrabold text-emerald-800">IELTS 4-Criteria Assessment:</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-bold">
+                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Fluency: <b class="text-emerald-600">Band 7.0</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Lexical: <b class="text-emerald-600">Band 7.5</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Grammar: <b class="text-emerald-600">Band 6.5</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Pronunciation: <b class="text-emerald-600">Band 7.0</b></div>
                     </div>
+                    <p id="ielts-feedback-text" class="text-xs text-slate-600 font-medium pt-1"></p>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 3: STUDY SESSION (THE ACTUAL QUIZ/STUDY ENGINE) -->
-        <div id="view-study-session" class="hidden space-y-6">
+        <!-- VIEW 3: STUDY SESSION (SMART LOOP & ENCOURAGEMENT FEEDBACK) -->
+        <div id="view-study-session" class="hidden space-y-4">
             <div class="flex justify-between items-center">
                 <button onclick="exitStudy()" class="text-xs font-bold text-slate-400 hover:text-slate-700">✕ Exit Practice</button>
-                <span id="study-progress-text" class="text-xs font-bold text-purple-600">Question 1/5</span>
+                <span id="study-mode-badge" class="text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">Phase 1: MCQ Loop</span>
             </div>
 
-            <!-- CARD CONTAINER FOR QUESTIONS -->
-            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5" id="question-box">
-                <!-- Content will be dynamically inserted via Javascript -->
-            </div>
+            <div id="study-card-container" class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"></div>
         </div>
 
     </div>
@@ -126,8 +129,8 @@
     <!-- MODAL 1: NEW FOLDER -->
     <div id="modal-folder" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-3xl w-full max-w-md space-y-4 shadow-xl">
-            <h3 class="font-extrabold text-slate-800 text-base">Create New Folder</h3>
-            <input type="text" id="input-folder-name" placeholder="Folder Name (e.g., IELTS Writing Task 2)" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-purple-400">
+            <h3 class="font-extrabold text-slate-800 text-sm">Create New Folder</h3>
+            <input type="text" id="input-folder-name" placeholder="Folder Title..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold">
             <div class="flex justify-end gap-2">
                 <button onclick="closeModal('modal-folder')" class="px-4 py-2 text-xs font-bold text-slate-400">Cancel</button>
                 <button onclick="createFolder()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-xs font-bold">Create</button>
@@ -135,31 +138,22 @@
         </div>
     </div>
 
-    <!-- MODAL 2: NEW SET (WITH BULK IMPORT & FILE SCAN) -->
+    <!-- MODAL 2: NEW SET -->
     <div id="modal-set" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-3xl w-full max-w-lg space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 class="font-extrabold text-slate-800 text-base">Create Study Set</h3>
-            
+            <h3 class="font-extrabold text-slate-800 text-sm">Create Study Set</h3>
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase">Target Folder</label>
-                <select id="select-folder-target" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-purple-400 mt-1"></select>
+                <select id="select-folder-target" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold mt-1"></select>
             </div>
-
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase">Set Title</label>
-                <input type="text" id="input-set-title" placeholder="Set Title (e.g., Environment Vocabulary)" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-purple-400 mt-1">
+                <input type="text" id="input-set-title" placeholder="Set Title..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold mt-1">
             </div>
-
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Import Words (- or ; format)</label>
-                <textarea id="input-set-terms" rows="4" placeholder="Detrimental - Harmful or damaging&#10;Mitigate ; Make less severe" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-purple-400 mt-1"></textarea>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Import Terms (- or ;)</label>
+                <textarea id="input-set-terms" rows="4" placeholder="Detrimental - Harmful&#10;Mitigate ; Reduce" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold mt-1"></textarea>
             </div>
-
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Or Import From File (PDF / DOCX)</label>
-                <input type="file" id="file-set-input" accept=".pdf, .docx" class="block w-full text-xs font-bold text-slate-400 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 mt-1 cursor-pointer">
-            </div>
-
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal('modal-set')" class="px-4 py-2 text-xs font-bold text-slate-400">Cancel</button>
                 <button onclick="saveSet()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-xs font-bold">Save Set</button>
@@ -168,207 +162,205 @@
     </div>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        let appData = JSON.parse(localStorage.getItem('myVocabAppDataV3')) || {
+            folders: [{ id: 'f1', name: 'IELTS Core Academic' }],
+            sets: [{
+                id: 's1',
+                folderId: 'f1',
+                title: 'Environment & Ecology',
+                terms: [
+                    { id: 't1', word: 'Detrimental', meaning: 'Harmful or damaging', lastReviewed: 0, status: 'due' },
+                    { id: 't2', word: 'Mitigate', meaning: 'Make less severe', lastReviewed: Date.now(), status: 'mastered' },
+                    { id: 't3', word: 'Exacerbate', meaning: 'Make a problem worse', lastReviewed: 0, status: 'due' }
+                ]
+            }]
+        };
 
-        // APP STATE (STORED IN LOCALSTORAGE)
-        let appData = JSON.parse(localStorage.getItem('myVocabAppData')) || {
-            folders: [
-                { id: 'f1', name: 'IELTS Writing Task 2' }
+        const encouragementQuotes = {
+            correct: [
+                { quote: "Keep up the momentum! You're mastering this topic.", idiom: "💡 'On a roll' — Experiencing a period of success!" },
+                { quote: "Brilliant effort! Your vocabulary store is expanding.", idiom: "🌟 'Hit the nail on the head' — Absolutely accurate!" },
+                { quote: "Spot on! Consistency is your superpower.", idiom: "🚀 'Sky is the limit' — There is no barrier to your progress!" }
             ],
-            sets: [
-                {
-                    id: 's1',
-                    folderId: 'f1',
-                    title: 'Environment & Climate Change',
-                    terms: [
-                        { word: 'Detrimental', meaning: 'Harmful or damaging', examplePrompt: 'Việc xả thải hóa chất có tác động gây hại nghiêm trọng đến nguồn nước.' },
-                        { word: 'Mitigate', meaning: 'Make less severe', examplePrompt: 'Chính phủ đang áp dụng các giải pháp mới để giảm nhẹ tình trạng ô nhiễm môi trường.' },
-                        { word: 'Exacerbate', meaning: 'Make a problem worse', examplePrompt: 'Khí thải từ xe cộ làm trầm trọng thêm tình trạng biến đổi khí hậu.' }
-                    ]
-                }
+            wrong: [
+                { quote: "Don't sweat it! Making mistakes is part of the learning curve.", idiom: "💪 'Every cloud has a silver lining' — Something good comes from every struggle." },
+                { quote: "Close attempt! This word is pushed to the end of the loop so you can retry.", idiom: "🌱 'Practice makes perfect' — Keep trying and you will master it!" },
+                { quote: "No worries at all! Just a small hiccup on your way to Band 8.0.", idiom: "🔥 'Rome wasn't built in a day' — Great achievement takes time." }
             ]
         };
 
         let currentActiveSet = null;
-        let currentStudyQuestions = [];
-        let currentQuestionIdx = 0;
-        let studyModeType = ''; // 'deep' or 'cram'
+        let mcqQueue = [];
+        let translateQueue = [];
+        let currentPhase = 'mcq';
 
         function saveState() {
-            localStorage.setItem('myVocabAppData', JSON.stringify(appData));
+            localStorage.setItem('myVocabAppDataV3', JSON.stringify(appData));
             renderDashboard();
         }
 
-        // RENDER DASHBOARD (FOLDERS & SETS)
+        function switchMainTab(tab) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-speaking').classList.add('hidden');
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            document.getElementById('tab-dash').className = "flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800";
+            document.getElementById('tab-speaking').className = "flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800";
+            document.getElementById(`tab-${tab}`).className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm";
+        }
+
         function renderDashboard() {
-            const container = document.getElementById('folder-list-container');
+            const container = document.getElementById('folder-container');
             container.innerHTML = '';
 
             appData.folders.forEach(folder => {
-                const folderSets = appData.sets.filter(s => s.folderId === folder.id);
+                const sets = appData.sets.filter(s => s.folderId === folder.id);
                 let html = `
-                    <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
                             <span class="text-xs font-extrabold text-slate-800">📁 ${folder.name}</span>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${folderSets.length} Sets</span>
+                            <span class="text-[10px] font-bold text-slate-400">${sets.length} Sets</span>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 `;
 
-                if(folderSets.length === 0) {
-                    html += `<p class="text-xs text-slate-400 font-semibold italic col-span-2">No study sets in this folder yet.</p>`;
-                } else {
-                    folderSets.forEach(set => {
-                        html += `
-                            <div onclick="selectSet('${set.id}')" class="p-4 border border-purple-100 hover:border-purple-300 bg-purple-50/30 rounded-2xl cursor-pointer transition flex justify-between items-center">
+                sets.forEach(set => {
+                    const dueCount = set.terms.filter(t => t.status === 'due' || !t.lastReviewed).length;
+                    html += `
+                        <div class="p-4 border border-slate-200 rounded-2xl bg-purple-50/20 space-y-2">
+                            <div class="flex justify-between items-start">
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-xs">${set.title}</h4>
-                                    <span class="text-[10px] font-semibold text-purple-500">${set.terms.length} Terms</span>
+                                    <span class="text-[10px] font-semibold text-slate-400">${set.terms.length} terms</span>
                                 </div>
-                                <span class="text-xs font-bold text-purple-600 bg-white px-2.5 py-1 rounded-xl shadow-sm">Study ➔</span>
+                                <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">${dueCount} Due</span>
                             </div>
-                        `;
-                    });
-                }
+                            <div class="flex gap-2 pt-1">
+                                <button onclick="startStudySet('${set.id}', false)" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-[11px] font-bold py-1.5 rounded-xl transition">Study All</button>
+                                <button onclick="startStudySet('${set.id}', true)" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-1.5 rounded-xl transition">Practice Due (${dueCount})</button>
+                            </div>
+                        </div>
+                    `;
+                });
 
                 html += `</div></div>`;
                 container.innerHTML += html;
             });
         }
 
-        function selectSet(setId) {
+        function startStudySet(setId, dueOnly) {
             currentActiveSet = appData.sets.find(s => s.id === setId);
-            document.getElementById('selected-set-title').innerText = currentActiveSet.title;
-            document.getElementById('selected-set-count').innerText = `${currentActiveSet.terms.length} Terms Available`;
+            let termsToStudy = dueOnly ? currentActiveSet.terms.filter(t => t.status === 'due' || !t.lastReviewed) : [...currentActiveSet.terms];
             
+            if(termsToStudy.length === 0) return alert('No due terms to review right now!');
+
+            mcqQueue = [...termsToStudy];
+            translateQueue = [...termsToStudy];
+            currentPhase = 'mcq';
+
             document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-study-select').classList.remove('hidden');
-        }
-
-        function showDashboard() {
-            document.getElementById('view-study-select').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
-        }
-
-        // START STUDY SESSION ENGINE
-        function startStudy(mode) {
-            studyModeType = mode;
-            currentQuestionIdx = 0;
-            currentStudyQuestions = [];
-
-            if (mode === 'cram') {
-                // Cram Mode: Multiple choice & Flashcard speed
-                currentActiveSet.terms.forEach(term => {
-                    currentStudyQuestions.push({ type: 'mcq', term });
-                });
-            } else {
-                // Deep Retention Mode: MCQ + Translation Practice
-                currentActiveSet.terms.forEach(term => {
-                    currentStudyQuestions.push({ type: 'mcq', term });
-                    currentStudyQuestions.push({ type: 'translate', term });
-                });
-            }
-
-            // Shuffle Questions
-            currentStudyQuestions.sort(() => 0.5 - Math.random());
-
-            document.getElementById('view-study-select').classList.add('hidden');
             document.getElementById('view-study-session').classList.remove('hidden');
-            renderCurrentQuestion();
+            renderStudyCard();
         }
 
-        function renderCurrentQuestion() {
-            const box = document.getElementById('question-box');
-            const q = currentStudyQuestions[currentQuestionIdx];
-            document.getElementById('study-progress-text').innerText = `Question ${currentQuestionIdx + 1} of ${currentStudyQuestions.length}`;
+        function renderStudyCard() {
+            const container = document.getElementById('study-card-container');
+            const badge = document.getElementById('study-mode-badge');
 
-            if (!q) {
-                box.innerHTML = `
-                    <div class="text-center py-8 space-y-3">
-                        <span class="text-4xl">🎉</span>
-                        <h3 class="text-xl font-extrabold text-slate-800">Session Completed!</h3>
-                        <p class="text-xs font-semibold text-slate-500">You've successfully practiced this study set.</p>
-                        <button onclick="exitStudy()" class="px-5 py-2.5 bg-purple-500 text-white rounded-2xl text-xs font-bold">Return to Dashboard</button>
-                    </div>
-                `;
-                addStreakProgress();
-                return;
-            }
+            if (currentPhase === 'mcq') {
+                if (mcqQueue.length === 0) {
+                    currentPhase = 'translate';
+                    renderStudyCard();
+                    return;
+                }
 
-            if (q.type === 'mcq') {
-                // Multiple Choice Generator
-                let options = [q.term.meaning];
-                let otherTerms = currentActiveSet.terms.filter(t => t.word !== q.term.word);
-                otherTerms.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(t => options.push(t.meaning));
+                badge.innerText = `Phase 1: MCQ Loop (${mcqQueue.length} Remaining)`;
+                badge.className = "text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full";
+
+                const currentTerm = mcqQueue[0];
+                let options = [currentTerm.meaning];
+                let others = currentActiveSet.terms.filter(t => t.word !== currentTerm.word);
+                others.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(t => options.push(t.meaning));
                 options.sort(() => 0.5 - Math.random());
 
-                box.innerHTML = `
+                container.innerHTML = `
                     <div class="space-y-4">
-                        <span class="text-[10px] font-bold text-purple-500 bg-purple-100 px-2.5 py-0.5 rounded-full uppercase">Multiple Choice</span>
-                        <h3 class="text-2xl font-black text-slate-800">${q.term.word}</h3>
-                        <p class="text-xs text-slate-400 font-bold">Select the correct definition:</p>
-                        <div class="grid grid-cols-1 gap-2.5 pt-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Select Correct Definition</span>
+                        <h3 class="text-2xl font-black text-slate-800">${currentTerm.word}</h3>
+                        <div class="grid grid-cols-1 gap-2.5">
                             ${options.map(opt => `
-                                <button onclick="checkMCQAnswer(this, '${opt === q.term.meaning}')" class="w-full text-left p-3.5 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold text-slate-700 transition">
+                                <button onclick="handleMCQChoice('${opt === currentTerm.meaning}')" class="w-full text-left p-3.5 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
                                     ${opt}
                                 </button>
                             `).join('')}
                         </div>
+                        <div id="feedback-panel" class="hidden p-4 rounded-2xl text-xs space-y-1"></div>
                     </div>
                 `;
-            } else if (q.type === 'translate') {
-                // AI Translation Practice Prompt Generator
-                const promptText = q.term.examplePrompt || `Hãy dịch câu có chứa nghĩa liên quan đến từ "${q.term.word}" sang Tiếng Anh.`;
-                box.innerHTML = `
+            } else if (currentPhase === 'translate') {
+                if (translateQueue.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8 space-y-3">
+                            <span class="text-4xl">🌟</span>
+                            <h3 class="text-xl font-extrabold text-slate-800">Study Session Completed!</h3>
+                            <p class="text-xs font-semibold text-slate-400">Your vocabulary terms are updated in your memory ledger.</p>
+                            <button onclick="exitStudy()" class="px-5 py-2.5 bg-purple-500 text-white rounded-2xl text-xs font-bold">Return to Dashboard</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                badge.innerText = `Phase 2: Translation Practice (${translateQueue.length} Remaining)`;
+                badge.className = "text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full";
+
+                const currentTerm = translateQueue[0];
+                container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-indigo-500 bg-indigo-100 px-2.5 py-0.5 rounded-full uppercase">AI Translation Challenge</span>
-                            <span class="text-[10px] font-extrabold text-slate-400">Target Word: <b class="text-purple-600">${q.term.word}</b></span>
+                        <span class="text-[10px] font-bold text-indigo-500 uppercase">Sentence Translation Challenge</span>
+                        <p class="text-xs font-bold text-slate-700">Translate the prompt into English using <b class="text-purple-600">${currentTerm.word}</b>:</p>
+                        <div class="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100 text-xs font-bold text-indigo-950">
+                            "Hành động này mang lại những hậu quả nghiêm trọng đối với hệ sinh thái."
                         </div>
-                        <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 space-y-1">
-                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Vietnamese Prompt:</span>
-                            <p class="text-xs font-bold text-indigo-950">"${promptText}"</p>
-                        </div>
-                        <textarea id="user-trans-input" rows="3" placeholder="Type your English translation here..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-purple-400"></textarea>
-                        <button onclick="checkTranslationAnswer('${q.term.word}')" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2.5 rounded-2xl text-xs transition">Submit & Evaluate</button>
-                        <div id="trans-feedback" class="hidden p-3.5 rounded-2xl text-xs font-semibold leading-relaxed"></div>
+                        <textarea id="trans-input-field" rows="3" placeholder="Type your English translation..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-purple-400"></textarea>
+                        <button onclick="submitTranslation()" class="w-full bg-purple-500 text-white font-bold py-2.5 rounded-2xl text-xs">Submit Translation</button>
                     </div>
                 `;
             }
         }
 
-        function checkMCQAnswer(btn, isCorrect) {
+        function handleMCQChoice(isCorrect) {
+            const currentTerm = mcqQueue.shift();
+            const panel = document.getElementById('feedback-panel');
+            panel.classList.remove('hidden');
+
             if (isCorrect === 'true') {
-                btn.className = "w-full text-left p-3.5 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold";
-                setTimeout(() => { currentQuestionIdx++; renderCurrentQuestion(); }, 700);
+                currentTerm.status = 'mastered';
+                currentTerm.lastReviewed = Date.now();
+                const res = encouragementQuotes.correct[Math.floor(Math.random() * encouragementQuotes.correct.length)];
+
+                panel.className = "p-4 rounded-2xl text-xs space-y-1 bg-emerald-50 border border-emerald-200 text-emerald-800";
+                panel.innerHTML = `<b>🎉 Correct!</b> ${res.quote}<br><i class="text-[11px] opacity-90">${res.idiom}</i>`;
+
+                setTimeout(() => { renderStudyCard(); }, 1200);
             } else {
-                btn.className = "w-full text-left p-3.5 bg-rose-100 border border-rose-300 text-rose-800 rounded-2xl text-xs font-bold";
+                // CHO CHỌN SAI -> ĐẨY VỀ CUỐI HÀNG (SMART LOOP)
+                currentTerm.status = 'due';
+                mcqQueue.push(currentTerm);
+                const res = encouragementQuotes.wrong[Math.floor(Math.random() * encouragementQuotes.wrong.length)];
+
+                panel.className = "p-4 rounded-2xl text-xs space-y-1 bg-rose-50 border border-rose-200 text-rose-800";
+                panel.innerHTML = `<b>💙 Keep Going!</b> ${res.quote}<br><i class="text-[11px] opacity-90">${res.idiom}</i>`;
+
+                setTimeout(() => { renderStudyCard(); }, 1800);
             }
+            saveState();
         }
 
-        function checkTranslationAnswer(targetWord) {
-            const input = document.getElementById('user-trans-input').value.trim();
-            const feedbackBox = document.getElementById('trans-feedback');
-            if(!input) return alert('Please input your translation first.');
-
-            feedbackBox.classList.remove('hidden');
-            const usedTarget = new RegExp(targetWord, 'i').test(input);
-
-            if (usedTarget) {
-                feedbackBox.className = "p-3.5 rounded-2xl text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800";
-                feedbackBox.innerHTML = `<b>✨ Great Job!</b> You correctly used the key vocabulary <b>"${targetWord}"</b> in your translation!`;
-            } else {
-                feedbackBox.className = "p-3.5 rounded-2xl text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-800";
-                feedbackBox.innerHTML = `<b>💡 Tip:</b> Try incorporating the word <b>"${targetWord}"</b> into your sentence for higher IELTS Lexical Resource scores!`;
-            }
-
-            setTimeout(() => {
-                let nextBtn = document.createElement('button');
-                nextBtn.className = "w-full mt-2 bg-slate-800 text-white py-2 rounded-xl text-xs font-bold";
-                nextBtn.innerText = "Next Question →";
-                nextBtn.onclick = () => { currentQuestionIdx++; renderCurrentQuestion(); };
-                feedbackBox.appendChild(nextBtn);
-            }, 400);
+        function submitTranslation() {
+            const text = document.getElementById('trans-input-field').value.trim();
+            if(!text) return;
+            translateQueue.shift();
+            renderStudyCard();
         }
 
         function exitStudy() {
@@ -376,100 +368,72 @@
             document.getElementById('view-dashboard').classList.remove('hidden');
         }
 
-        // MODAL MANAGEMENT & DATA CREATION
-        function openFolderModal() { document.getElementById('modal-folder').classList.remove('hidden'); }
-        function openSetModal() {
-            const select = document.getElementById('select-folder-target');
-            select.innerHTML = appData.folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
-            document.getElementById('modal-set').classList.remove('hidden');
+        // AI SPEAKING TIMER & CHAT
+        let speakingSeconds = 0;
+        setInterval(() => {
+            const isSpeakingActive = !document.getElementById('view-speaking').classList.contains('hidden');
+            if(isSpeakingActive) {
+                speakingSeconds++;
+                const minsLeft = Math.max(0, 15 - Math.floor(speakingSeconds / 60));
+                document.getElementById('speaking-timer').innerText = `${minsLeft}:00 Remaining`;
+                document.getElementById('goal-speaking').innerText = `${Math.floor(speakingSeconds / 60)}/15 mins`;
+            }
+        }, 1000);
+
+        function sendSpeakingResponse() {
+            const input = document.getElementById('user-speaking-input');
+            const val = input.value.trim();
+            if(!val) return;
+
+            const chat = document.getElementById('chat-history');
+            chat.innerHTML += `<div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] ml-auto font-semibold">${val}</div>`;
+            input.value = '';
+
+            setTimeout(() => {
+                chat.innerHTML += `<div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold">🤖 AI Examiner: "Excellent point! Could you elaborate further on how governments could incentivize this behavior?"</div>`;
+                chat.scrollTop = chat.scrollHeight;
+
+                document.getElementById('ielts-evaluation-box').classList.remove('hidden');
+                document.getElementById('ielts-feedback-text').innerText = "Solid vocabulary! To reach Band 7.5+ in Fluency, try connecting your main ideas using transition phrases like 'Furthermore' or 'On the other hand'.";
+            }, 1000);
         }
+
+        // MODALS
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openSetModal() {
+            document.getElementById('select-folder-target').innerHTML = appData.folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            openModal('modal-set');
+        }
 
         function createFolder() {
             const name = document.getElementById('input-folder-name').value.trim();
             if(!name) return;
             appData.folders.push({ id: 'f_' + Date.now(), name });
-            document.getElementById('input-folder-name').value = '';
             closeModal('modal-folder');
             saveState();
         }
 
-        async function saveSet() {
+        function saveSet() {
             const folderId = document.getElementById('select-folder-target').value;
             const title = document.getElementById('input-set-title').value.trim();
             const text = document.getElementById('input-set-terms').value.trim();
-            const fileInput = document.getElementById('file-set-input');
 
-            let parsedTerms = [];
-
-            if (text) {
-                text.split('\n').forEach(line => {
-                    let parts = line.split(/[-;]/);
-                    if(parts.length >= 2) {
-                        parsedTerms.push({
-                            word: parts[0].trim(),
-                            meaning: parts.slice(1).join(' - ').trim(),
-                            examplePrompt: `Hãy dịch câu Tiếng Việt có chứa nghĩa "${parts.slice(1).join(' - ').trim()}" sang Tiếng Anh.`
-                        });
-                    }
-                });
-            }
-
-            if(fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                let fileText = "";
-                if(file.name.endsWith('.pdf')) {
-                    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        fileText += (await (await pdf.getPage(i)).getTextContent()).items.map(item => item.str).join(" ") + "\n";
-                    }
-                } else if(file.name.endsWith('.docx')) {
-                    fileText = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
+            let terms = [];
+            text.split('\n').forEach(line => {
+                let parts = line.split(/[-;]/);
+                if(parts.length >= 2) {
+                    terms.push({ id: 't_' + Date.now(), word: parts[0].trim(), meaning: parts.slice(1).join(' - ').trim(), lastReviewed: 0, status: 'due' });
                 }
-                fileText.split('\n').forEach(line => {
-                    let parts = line.split(/[-;]/);
-                    if(parts.length >= 2) {
-                        parsedTerms.push({ word: parts[0].trim(), meaning: parts.slice(1).join(' - ').trim(), examplePrompt: '' });
-                    }
-                });
-            }
-
-            if(!title || parsedTerms.length === 0) return alert('Please enter a set title and at least 1 term!');
-
-            appData.sets.push({
-                id: 's_' + Date.now(),
-                folderId,
-                title,
-                terms: parsedTerms
             });
 
+            if(!title || !terms.length) return alert('Please enter set title and terms!');
+            appData.sets.push({ id: 's_' + Date.now(), folderId, title, terms });
             closeModal('modal-set');
             saveState();
         }
 
-        // STREAK & PROGRESS
-        function addStreakProgress() {
-            let streakData = JSON.parse(localStorage.getItem('myCatStreak')) || { count: 0, lastDate: '', todayLearnedCount: 0 };
-            const today = new Date().toDateString();
-
-            streakData.todayLearnedCount += 5;
-            if (streakData.todayLearnedCount >= 10 && streakData.lastDate !== today) {
-                streakData.count += 1;
-                streakData.lastDate = today;
-            }
-            localStorage.setItem('myCatStreak', JSON.stringify(streakData));
-            updateStreakUI();
-        }
-
-        function updateStreakUI() {
-            let streakData = JSON.parse(localStorage.getItem('myCatStreak')) || { count: 0, todayLearnedCount: 0 };
-            document.getElementById('streak-count').innerText = streakData.count || 0;
-            document.getElementById('daily-count').innerText = Math.min(streakData.todayLearnedCount || 0, 10);
-            document.getElementById('daily-progress-bar').style.width = `${Math.min(((streakData.todayLearnedCount || 0) / 10) * 100, 100)}%`;
-        }
-
         renderDashboard();
-        updateStreakUI();
     </script>
 </body>
 </html>
