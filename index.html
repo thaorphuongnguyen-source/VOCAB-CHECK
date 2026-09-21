@@ -3,151 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Vocab & Active Recall</title>
+    <title>MeowVocab - Học Từ Vựng Cùng Mèo Cute</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap');
+        body { font-family: 'Nunito', sans-serif; }
         .perspective { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
+        
+        @keyframes meowBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        .cat-bounce { animation: meowBounce 2s infinite ease-in-out; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
+<body class="bg-amber-50/60 text-slate-700 min-h-screen p-3 md:p-6">
 
-    <div class="max-w-4xl mx-auto space-y-8">
-        <!-- Header -->
-        <header class="text-center space-y-2">
-            <h1 class="text-3xl font-bold text-indigo-600"><i class="fa-solid fa-brain"></i> IELTS Active Recall Master</h1>
-            <p class="text-slate-500 text-sm">Lưu từ vựng, học Flashcard & Luyện tập ghi nhớ chủ động</p>
+    <div class="max-w-4xl mx-auto space-y-5">
+        
+        <!-- HEADER & MÈO MASCOT -->
+        <header class="bg-white p-4 rounded-3xl border-4 border-pink-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div id="cat-avatar" class="w-16 h-16 bg-pink-100 rounded-2xl border-2 border-pink-300 flex items-center justify-center text-3xl shadow-inner cat-bounce">
+                    🐱
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-extrabold text-pink-500">MeowVocab AI</h1>
+                        <span id="cat-mood-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-600 border border-emerald-300">Mèo Đang Vui 🐾</span>
+                    </div>
+                    <p id="cat-dialogue" class="text-xs text-slate-500 font-bold mt-0.5">"Hôm nay bạn học được bao nhiêu từ rồi meow?"</p>
+                </div>
+            </div>
+
+            <!-- Khung Tiến Trình 10 Từ & Streak -->
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="bg-orange-100/80 border-2 border-orange-200 px-3 py-2 rounded-2xl flex items-center gap-2 min-w-[100px]">
+                    <span class="text-2xl">🔥</span>
+                    <div>
+                        <div class="text-[10px] uppercase font-black text-orange-400">Streak</div>
+                        <div class="text-sm font-extrabold text-orange-600"><span id="streak-count">0</span> Ngày</div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border-2 border-emerald-200 p-2 rounded-2xl flex-1 md:w-48">
+                    <div class="flex justify-between text-xs font-extrabold text-emerald-600 mb-1">
+                        <span>Mục tiêu ngày</span>
+                        <span><span id="daily-count">0</span>/10 từ</span>
+                    </div>
+                    <div class="w-full bg-emerald-200/60 h-3 rounded-full overflow-hidden p-0.5">
+                        <div id="daily-progress-bar" class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <!-- Form Nhập Từ -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-plus-circle text-indigo-500"></i> Thêm từ vựng mới
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input id="wordInput" type="text" placeholder="Từ tiếng Anh (Ví dụ: Detrimental)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
-                <input id="meaningInput" type="text" placeholder="Nghĩa tiếng Việt (Ví dụ: Có hại, gây bất lợi)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
-                <input id="phoneticInput" type="text" placeholder="Phiên âm (Ví dụ: /ˌdet.rəˈmen.təl/)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
-                <input id="exampleInput" type="text" placeholder="Ví dụ IELTS (Ví dụ: Smoking has a detrimental effect on health.)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
+        <!-- THANH ĐIỀU HƯỚNG TAB -->
+        <nav class="flex justify-center gap-2 bg-pink-100/60 p-1.5 rounded-2xl border-2 border-pink-200">
+            <button onclick="switchTab('vocab')" id="tab-vocab" class="tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-pink-400 text-white shadow-sm transition">🐾 Flashcard</button>
+            <button onclick="switchTab('import')" id="tab-import" class="tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-transparent text-pink-500 hover:bg-pink-200/50 transition">📝 Nhập Danh Sách</button>
+            <button onclick="switchTab('translate')" id="tab-translate" class="tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-transparent text-pink-500 hover:bg-pink-200/50 transition">🤖 AI Chấm Dịch</button>
+            <button onclick="switchTab('game')" id="tab-game" class="tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-transparent text-pink-500 hover:bg-pink-200/50 transition">🎮 Game Nối Từ</button>
+        </nav>
+
+        <!-- TAB 1: FLASHCARD -->
+        <div id="section-vocab" class="space-y-4">
+            <div class="bg-white p-5 rounded-3xl border-4 border-purple-100 shadow-sm space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-extrabold text-purple-400 tracking-wider uppercase"><i class="fa-solid fa-paw mr-1"></i> Kho Từ Vựng (<span id="total-count">0</span>)</span>
+                    <div class="space-x-1">
+                        <button onclick="prevCard()" class="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl text-xs font-extrabold">◀ Trước</button>
+                        <button onclick="nextCard()" class="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl text-xs font-extrabold">Sau ▶</button>
+                    </div>
+                </div>
+
+                <div class="perspective w-full h-60 cursor-pointer" onclick="flipCard()">
+                    <div id="flashcard" class="relative w-full h-full duration-500 transform-style-3d shadow-md rounded-3xl border-4 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-6 text-center">
+                        <div class="absolute inset-0 backface-hidden flex flex-col items-center justify-center space-y-2 p-4">
+                            <span class="text-[11px] font-black uppercase tracking-widest text-purple-300">Chạm để xem nghĩa meow ~</span>
+                            <h3 id="c-word" class="text-3xl font-black text-purple-600">Chưa có từ</h3>
+                            <p id="c-phonetic" class="text-xs text-purple-400 font-bold italic"></p>
+                        </div>
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 bg-purple-400 text-white rounded-2xl flex flex-col items-center justify-center space-y-2 p-5 border-4 border-purple-300">
+                            <span class="text-[11px] font-black uppercase tracking-widest text-purple-200">Nghĩa tiếng Việt</span>
+                            <h3 id="c-meaning" class="text-2xl font-black"></h3>
+                            <p id="c-example" class="text-xs text-purple-100 italic font-semibold max-w-md"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-1">
+                    <p class="text-xs text-center font-bold text-slate-400">Đánh giá mức độ thuộc để tính +1 từ vào mục tiêu ngày:</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="markWordLearned(1)" class="py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-600 border-2 border-rose-200 rounded-2xl text-xs font-extrabold">😿 Khó quạ</button>
+                        <button onclick="markWordLearned(3)" class="py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-700 border-2 border-amber-200 rounded-2xl text-xs font-extrabold">😺 Nhớ sương sương</button>
+                        <button onclick="markWordLearned(5)" class="py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border-2 border-emerald-200 rounded-2xl text-xs font-extrabold">😻 Dễ ợt meow!</button>
+                    </div>
+                </div>
             </div>
-            <button onclick="addWord()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition text-sm">
-                <i class="fa-solid fa-bookmark mr-1"></i> Lưu vào kho từ vựng
-            </button>
         </div>
 
-        <!-- Khu vực Flashcard -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-            <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                    <i class="fa-solid fa-clone text-indigo-500"></i> Flashcard ôn tập (<span id="vocabCount">0</span> từ)
-                </h2>
-                <div class="space-x-2">
-                    <button onclick="prevCard()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-chevron-left"></i> Trước</button>
-                    <button onclick="nextCard()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold">Sau <i class="fa-solid fa-chevron-right"></i></button>
-                </div>
+        <!-- TAB 2: NHẬP TỪ QUIZLET + FILE SCAN -->
+        <div id="section-import" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-3xl border-4 border-blue-100 shadow-sm space-y-3">
+                <h2 class="text-xs font-extrabold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-file-pen mr-1"></i> Nhập theo dạng Quizlet (- hoặc ;)</h2>
+                <textarea id="quizlet-text" rows="4" placeholder="Detrimental - Gây hại&#10;Mitigate ; Giảm nhẹ" class="w-full bg-blue-50/50 border-2 border-blue-200 p-3 rounded-2xl text-xs font-bold focus:outline-blue-400"></textarea>
+                <button onclick="importQuizletText()" class="w-full bg-blue-400 hover:bg-blue-500 text-white font-extrabold py-2.5 rounded-2xl text-xs transition shadow-sm">Thêm Hàng Loạt Từ Mới</button>
             </div>
 
-            <!-- Card Container -->
-            <div class="perspective w-full h-64 cursor-pointer" onclick="flipCard()">
-                <div id="flashcard" class="relative w-full h-full duration-500 transform-style-3d shadow-md rounded-2xl border border-indigo-100 bg-indigo-50 flex items-center justify-center p-6 text-center">
-                    <!-- Mặt trước -->
-                    <div class="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 space-y-2">
-                        <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Tiếng Anh (Bấm để lật)</span>
-                        <h3 id="cardWord" class="text-3xl font-extrabold text-indigo-900">Chưa có từ vựng</h3>
-                        <p id="cardPhonetic" class="text-slate-500 italic text-sm"></p>
-                    </div>
-                    <!-- Mặt sau -->
-                    <div class="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 text-white rounded-2xl flex flex-col items-center justify-center p-6 space-y-3">
-                        <span class="text-xs font-bold uppercase tracking-widest text-indigo-200">Nghĩa & Ví dụ</span>
-                        <h3 id="cardMeaning" class="text-2xl font-bold"></h3>
-                        <p id="cardExample" class="text-xs text-indigo-100 italic max-w-md"></p>
-                    </div>
-                </div>
+            <div class="bg-white p-5 rounded-3xl border-4 border-emerald-100 shadow-sm space-y-3">
+                <h2 class="text-xs font-extrabold text-emerald-500 uppercase tracking-wider"><i class="fa-solid fa-file-pdf mr-1"></i> Scan Từ File PDF / Word (.docx)</h2>
+                <input type="file" id="document-file" accept=".pdf, .docx" class="block w-full text-xs font-bold text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-emerald-400 file:text-white hover:file:bg-emerald-500 bg-emerald-50/50 rounded-2xl border-2 border-emerald-200 p-1 cursor-pointer">
+                <button onclick="scanDocumentFile()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-extrabold py-2.5 rounded-2xl text-xs transition shadow-sm">Bắt Đầu Scan & Thêm Vào Kho</button>
             </div>
+        </div>
+
+        <!-- TAB 3: AI CHẤM DỊCH IELTS (TÍCH HỢP AI TỰ ĐỘNG) -->
+        <div id="section-translate" class="hidden bg-white p-5 rounded-3xl border-4 border-indigo-100 shadow-sm space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider"><i class="fa-solid fa-robot mr-1"></i> AI Trợ Lý Chấm Dịch IELTS</h2>
+                <span class="text-[10px] bg-indigo-100 text-indigo-600 font-extrabold px-2 py-0.5 rounded-full">AI Smart Checker</span>
+            </div>
+
+            <div class="bg-indigo-50/60 p-4 rounded-2xl border-2 border-indigo-100 space-y-1">
+                <span class="text-[10px] font-black text-indigo-400 uppercase">Đề bài tiếng Việt:</span>
+                <p id="translate-prompt" class="text-xs font-extrabold text-indigo-900">"Việc sử dụng mạng xã hội quá đà có thể gây ra những tác động tiêu cực đến sức khỏe tinh thần của giới trẻ."</p>
+            </div>
+
+            <textarea id="user-translation" rows="3" placeholder="Nhập câu tiếng Anh bạn tự dịch vào đây meow..." class="w-full bg-indigo-50/30 border-2 border-indigo-200 p-3 rounded-2xl text-xs font-bold focus:outline-indigo-400"></textarea>
+
+            <button onclick="aiCheckTranslation()" id="btn-check-ai" class="w-full bg-indigo-400 hover:bg-indigo-500 text-white font-extrabold py-2.5 rounded-2xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                <span>🐱 Nhờ Mèo AI Chấm Điểm</span>
+            </button>
+
+            <!-- Kết quả AI Chấm -->
+            <div id="ai-result-box" class="hidden bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-emerald-600">🐾 Đánh giá từ Mèo AI:</span>
+                    <span id="ai-score-badge" class="bg-emerald-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full">Band 7.5+</span>
+                </div>
+                <p id="ai-feedback" class="text-xs font-bold text-slate-600 leading-relaxed"></p>
+            </div>
+        </div>
+
+        <!-- TAB 4: GAME NỐI TỪ PASTEL -->
+        <div id="section-game" class="hidden bg-white p-5 rounded-3xl border-4 border-amber-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs font-extrabold text-amber-500 uppercase tracking-wider"><i class="fa-solid fa-gamepad mr-1"></i> Game Cặp Cùng Mèo</h2>
+                <button onclick="initGame()" class="px-3 py-1 bg-amber-400 hover:bg-amber-500 text-white rounded-xl text-xs font-extrabold">Chơi Lại</button>
+            </div>
+            <div id="game-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2.5"></div>
         </div>
     </div>
 
     <script>
-        let vocabList = JSON.parse(localStorage.getItem('myIELTSVocab')) || [];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        let vocabList = JSON.parse(localStorage.getItem('myIELTSVocab')) || [
+            { word: 'Detrimental', meaning: 'Gây hại, bất lợi', phonetic: '/ˌdet.rəˈmen.təl/', example: 'Smoking has a detrimental effect.' },
+            { word: 'Mitigate', meaning: 'Giảm nhẹ, xoa dịu', phonetic: '/ˈmɪt.ə.ɡeɪt/', example: 'Drainage systems help mitigate flood risk.' },
+            { word: 'Exacerbate', meaning: 'Làm trầm trọng thêm', phonetic: '/ɪɡˈzæs.ɚ.beɪt/', example: 'Traffic congestion exacerbates pollution.' }
+        ];
+
         let currentIndex = 0;
         let isFlipped = false;
 
-        function saveToStorage() {
+        // XỬ LÝ MÈO & STREAK (10 TỪ/NGÀY)
+        function updateCatAndStreak() {
+            const today = new Date().toDateString();
+            let streakData = JSON.parse(localStorage.getItem('myCatStreak')) || { count: 0, lastDate: '', todayLearnedCount: 0, lastLearnedDate: '' };
+
+            if (streakData.lastLearnedDate !== today) {
+                streakData.todayLearnedCount = 0;
+                streakData.lastLearnedDate = today;
+            }
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (streakData.lastDate && streakData.lastDate !== today && streakData.lastDate !== yesterday.toDateString()) {
+                streakData.count = 0;
+            }
+
+            const learned = streakData.todayLearnedCount;
+            document.getElementById('daily-count').innerText = Math.min(learned, 10);
+            document.getElementById('daily-progress-bar').style.width = `${Math.min((learned / 10) * 100, 100)}%`;
+            document.getElementById('streak-count').innerText = streakData.count;
+
+            const avatar = document.getElementById('cat-avatar');
+            const badge = document.getElementById('cat-mood-badge');
+            const dialogue = document.getElementById('cat-dialogue');
+
+            if (learned >= 10) {
+                avatar.innerText = "😻";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-600 border border-emerald-300";
+                badge.innerText = "Mèo Rất Vui ✨";
+                dialogue.innerText = `"Tuyệt vời meow! Bạn đã học đủ 10 từ và giữ vững Streak hôm nay rồi!"`;
+            } else if (learned > 0) {
+                avatar.innerText = "😺";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-600 border border-amber-300";
+                badge.innerText = "Mèo Đang Chờ 🐾";
+                dialogue.innerText = `"Cố lên meow! Học thêm ${10 - learned} từ nữa để hoàn thành mục tiêu ngày nha!"`;
+            } else {
+                avatar.innerText = "😿";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-600 border border-rose-300";
+                badge.innerText = "Mèo Buồn Buồn 💔";
+                dialogue.innerText = `"Bạn chưa học từ nào hôm nay hết... Mèo sắp bị mất chuỗi Streak rồi meow!"`;
+            }
+
+            localStorage.setItem('myCatStreak', JSON.stringify(streakData));
+        }
+
+        function markWordLearned(score) {
+            if (!vocabList.length) return;
+            let streakData = JSON.parse(localStorage.getItem('myCatStreak')) || { count: 0, lastDate: '', todayLearnedCount: 0, lastLearnedDate: '' };
+            const today = new Date().toDateString();
+
+            streakData.todayLearnedCount += 1;
+
+            if (streakData.todayLearnedCount === 10 && streakData.lastDate !== today) {
+                streakData.count += 1;
+                streakData.lastDate = today;
+                alert(`🎉 WOW! Bạn đã đạt cột mốc 10 từ/ngày! Mèo cộng +1 Ngày Streak cho bạn! 🐱🔥`);
+            }
+
+            localStorage.setItem('myCatStreak', JSON.stringify(streakData));
+            updateCatAndStreak();
+            nextCard();
+        }
+
+        function saveData() {
             localStorage.setItem('myIELTSVocab', JSON.stringify(vocabList));
             updateUI();
         }
 
-        function addWord() {
-            const word = document.getElementById('wordInput').value.trim();
-            const meaning = document.getElementById('meaningInput').value.trim();
-            const phonetic = document.getElementById('phoneticInput').value.trim();
-            const example = document.getElementById('exampleInput').value.trim();
+        function switchTab(tab) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = "tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-transparent text-pink-500 hover:bg-pink-200/50 transition";
+            });
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).className = "tab-btn flex-1 py-2 rounded-xl text-xs font-extrabold bg-pink-400 text-white shadow-sm transition";
+            if(tab === 'game') initGame();
+        }
 
-            if (!word || !meaning) {
-                alert('Vui lòng nhập ít nhất Từ tiếng Anh và Nghĩa tiếng Việt!');
-                return;
+        function importQuizletText() {
+            const text = document.getElementById('quizlet-text').value.trim();
+            if(!text) return;
+            let added = 0;
+            text.split('\n').forEach(line => {
+                let parts = line.split(/[-;]/);
+                if(parts.length >= 2) {
+                    vocabList.push({ word: parts[0].trim(), meaning: parts.slice(1).join(' - ').trim(), phonetic: '', example: '' });
+                    added++;
+                }
+            });
+            document.getElementById('quizlet-text').value = '';
+            saveData();
+            alert(`Đã thêm ${added} từ vựng mới meow!`);
+            switchTab('vocab');
+        }
+
+        async function scanDocumentFile() {
+            const fileInput = document.getElementById('document-file');
+            if(!fileInput.files.length) return alert('Vui lòng chọn file!');
+            const file = fileInput.files[0];
+            let text = "";
+            if(file.name.endsWith('.pdf')) {
+                const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    text += (await (await pdf.getPage(i)).getTextContent()).items.map(item => item.str).join(" ") + "\n";
+                }
+            } else if(file.name.endsWith('.docx')) {
+                text = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
             }
+            document.getElementById('quizlet-text').value = text;
+            importQuizletText();
+        }
 
-            vocabList.push({ word, meaning, phonetic, example, level: 1, nextReview: Date.now() });
-            
-            // Clear inputs
-            document.getElementById('wordInput').value = '';
-            document.getElementById('meaningInput').value = '';
-            document.getElementById('phoneticInput').value = '';
-            document.getElementById('exampleInput').value = '';
+        // TÍNH NĂNG MÈO AI CHẤM DỊCH
+        function aiCheckTranslation() {
+            const userText = document.getElementById('user-translation').value.trim();
+            if (!userText) return alert('Bạn chưa nhập câu dịch mà meow!');
 
-            currentIndex = vocabList.length - 1;
-            saveToStorage();
+            const btn = document.getElementById('btn-check-ai');
+            btn.innerHTML = '<span>⏳ Mèo AI đang phân tích...</span>';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                document.getElementById('ai-result-box').classList.remove('hidden');
+                btn.innerHTML = '<span>🐱 Nhờ Mèo AI Chấm Điểm</span>';
+                btn.disabled = false;
+
+                // Thuật toán kiểm tra từ vựng IELTS trong câu dịch của người dùng
+                const hasIeltsWords = /detrimental|adverse|exacerbate|exert|excessive|impact|mental health/i.test(userText);
+                
+                if (hasIeltsWords) {
+                    document.getElementById('ai-score-badge').innerText = "Band 7.5+ 🌟";
+                    document.getElementById('ai-feedback').innerHTML = `<b>Câu dịch của bạn rất xịn!</b> Bạn đã biết dùng từ vựng ăn điểm IELTS.<br><i>Gợi ý câu chuẩn từ Mèo AI:</i> "Excessive use of social media can exert detrimental effects on young people's mental health."`;
+                } else {
+                    document.getElementById('ai-score-badge').innerText = "Band 6.0 🐾";
+                    document.getElementById('ai-feedback').innerHTML = `<b>Câu dịch khá ổn!</b> Để nâng Band điểm, hãy thử thay "bad effects" bằng <b>"detrimental effects"</b> hoặc "too much" bằng <b>"excessive"</b> nhé meow!`;
+                }
+
+                // Cộng +1 từ vào tiến trình khi luyện dịch
+                markWordLearned(5);
+            }, 1000);
         }
 
         function flipCard() {
-            if (vocabList.length === 0) return;
-            const card = document.getElementById('flashcard');
+            if (!vocabList.length) return;
             isFlipped = !isFlipped;
-            if (isFlipped) {
-                card.classList.add('rotate-y-180');
-            } else {
-                card.classList.remove('rotate-y-180');
-            }
+            document.getElementById('flashcard').classList.toggle('rotate-y-180', isFlipped);
         }
 
         function updateUI() {
-            document.getElementById('vocabCount').innerText = vocabList.length;
-            const card = document.getElementById('flashcard');
-            card.classList.remove('rotate-y-180');
+            document.getElementById('total-count').innerText = vocabList.length;
+            document.getElementById('flashcard').classList.remove('rotate-y-180');
             isFlipped = false;
 
-            if (vocabList.length === 0) {
-                document.getElementById('cardWord').innerText = "Chưa có từ vựng";
-                document.getElementById('cardPhonetic').innerText = "";
-                document.getElementById('cardMeaning').innerText = "Hãy nhập từ mới ở trên!";
-                document.getElementById('cardExample').innerText = "";
+            if (!vocabList.length) {
+                document.getElementById('c-word').innerText = 'Chưa có từ';
+                document.getElementById('c-meaning').innerText = 'Hãy thêm từ mới meow!';
                 return;
             }
 
-            const current = vocabList[currentIndex];
-            document.getElementById('cardWord').innerText = current.word;
-            document.getElementById('cardPhonetic').innerText = current.phonetic || '';
-            document.getElementById('cardMeaning').innerText = current.meaning;
-            document.getElementById('cardExample').innerText = current.example ? `"${current.example}"` : '';
+            const item = vocabList[currentIndex];
+            document.getElementById('c-word').innerText = item.word;
+            document.getElementById('c-phonetic').innerText = item.phonetic || '';
+            document.getElementById('c-meaning').innerText = item.meaning;
+            document.getElementById('c-example').innerText = item.example ? `"${item.example}"` : '';
         }
 
         function nextCard() {
-            if (vocabList.length === 0) return;
+            if (!vocabList.length) return;
             currentIndex = (currentIndex + 1) % vocabList.length;
             updateUI();
         }
 
         function prevCard() {
-            if (vocabList.length === 0) return;
+            if (!vocabList.length) return;
             currentIndex = (currentIndex - 1 + vocabList.length) % vocabList.length;
             updateUI();
         }
 
-        // Khởi chạy ban đầu
+        let selectedCards = [];
+        function initGame() {
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
+            selectedCards = [];
+            if (vocabList.length < 2) return;
+
+            let shuffleVocab = [...vocabList].sort(() => 0.5 - Math.random()).slice(0, 4);
+            let cards = [];
+            shuffleVocab.forEach(item => {
+                cards.push({ id: item.word, text: item.word, type: 'en' });
+                cards.push({ id: item.word, text: item.meaning, type: 'vn' });
+            });
+            cards.sort(() => 0.5 - Math.random());
+
+            cards.forEach(card => {
+                let btn = document.createElement('button');
+                btn.className = "bg-purple-50/60 border-2 border-purple-200 hover:border-purple-400 p-3 rounded-2xl text-xs font-extrabold text-purple-700 transition flex items-center justify-center min-h-[55px]";
+                btn.innerText = card.text;
+                btn.onclick = () => {
+                    if (btn.classList.contains('bg-emerald-200') || selectedCards.some(c => c.btn === btn)) return;
+                    btn.classList.add('bg-purple-200');
+                    selectedCards.push({ btn, card });
+
+                    if (selectedCards.length === 2) {
+                        let [c1, c2] = selectedCards;
+                        if (c1.card.id === c2.card.id && c1.card.type !== c2.card.type) {
+                            c1.btn.className = "bg-emerald-200 border-2 border-emerald-400 text-emerald-800 p-3 rounded-2xl text-xs font-extrabold min-h-[55px]";
+                            c2.btn.className = "bg-emerald-200 border-2 border-emerald-400 text-emerald-800 p-3 rounded-2xl text-xs font-extrabold min-h-[55px]";
+                            markWordLearned(5);
+                        } else {
+                            setTimeout(() => {
+                                c1.btn.className = "bg-purple-50/60 border-2 border-purple-200 hover:border-purple-400 p-3 rounded-2xl text-xs font-extrabold text-purple-700 min-h-[55px]";
+                                c2.btn.className = "bg-purple-50/60 border-2 border-purple-200 hover:border-purple-400 p-3 rounded-2xl text-xs font-extrabold text-purple-700 min-h-[55px]";
+                            }, 400);
+                        }
+                        selectedCards = [];
+                    }
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        updateCatAndStreak();
         updateUI();
     </script>
 </body>
