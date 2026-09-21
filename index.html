@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeowVocab AI - IELTS Hub</title>
+    <title>MeowVocab AI - IELTS Master Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         @keyframes floatCat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
         .cat-float { animation: floatCat 3s infinite ease-in-out; }
+        @keyframes pulseRed { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .mic-active { animation: pulseRed 1s infinite ease-in-out; background-color: #ef4444 !important; color: white !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-700 min-h-screen p-4 md:p-8">
@@ -33,7 +33,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-extrabold text-slate-800">MeowVocab AI</h1>
-                    <p class="text-xs text-slate-400 font-semibold">Active Recall & IELTS Speaking Coach</p>
+                    <p class="text-xs text-slate-400 font-semibold">Active Recall & IELTS Speaking Hub</p>
                 </div>
             </div>
 
@@ -42,7 +42,7 @@
                     <span class="text-lg">🔥</span>
                     <div>
                         <div class="text-[9px] uppercase font-bold text-amber-500 tracking-wider">Streak</div>
-                        <div class="text-xs font-extrabold text-amber-700"><span id="streak-count">0</span> Days</div>
+                        <div class="text-xs font-extrabold text-amber-700"><span id="streak-count">1</span> Days</div>
                     </div>
                 </div>
 
@@ -65,7 +65,7 @@
             <button onclick="switchMainTab('speaking')" id="tab-speaking" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800">🎙️ AI Speaking Room (15m)</button>
         </nav>
 
-        <!-- VIEW 1: DASHBOARD (FOLDERS & SETS WITH SPACED REPETITION) -->
+        <!-- VIEW 1: DASHBOARD -->
         <div id="view-dashboard" class="space-y-6">
             <div class="flex justify-between items-center">
                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Your Learning Sets</h2>
@@ -78,47 +78,61 @@
             <div id="folder-container" class="space-y-4"></div>
         </div>
 
-        <!-- VIEW 2: AI VOICE SPEAKING ROOM -->
+        <!-- VIEW 2: AI VOICE SPEAKING ROOM (WITH REAL MIC) -->
         <div id="view-speaking" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-800">IELTS Speaking Examiner</h2>
-                        <p class="text-xs text-slate-400 font-semibold">Practice for 15 minutes daily to maintain your streak!</p>
+                        <p class="text-xs text-slate-400 font-semibold">Real IELTS Criteria Assessment & Voice Room</p>
                     </div>
                     <span id="speaking-timer" class="text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">15:00 Remaining</span>
                 </div>
 
                 <div id="chat-history" class="h-64 bg-slate-50 border border-slate-200 p-4 rounded-2xl overflow-y-auto space-y-3 text-xs">
-                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold">
-                        🤖 AI Examiner: "Hello! Today let's talk about environmental preservation. In what ways can individuals reduce their daily carbon footprint?"
+                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold flex justify-between items-start gap-2">
+                        <span>🤖 AI Examiner: "Hello! Today let's discuss environmental conservation. What are some effective measures individuals can take to reduce their carbon footprint?"</span>
+                        <button onclick="speakText('Hello! Today let\'s discuss environmental conservation. What are some effective measures individuals can take to reduce their carbon footprint?')" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-volume-high"></i></button>
                     </div>
                 </div>
 
-                <div class="flex gap-2">
-                    <input type="text" id="user-speaking-input" placeholder="Type or speak your IELTS response..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400">
-                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 text-white font-bold rounded-2xl text-xs">Send</button>
-                </div>
+                <div class="flex gap-2 items-center">
+                    <!-- NÚT MICROPHONE BẤM NÓI CHUYỆN -->
+                    <button id="mic-btn" onclick="toggleMic()" class="w-12 h-12 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-2xl flex items-center justify-center text-base font-bold transition flex-shrink-0" title="Click to start speaking">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
 
-                <!-- IELTS 4 Criteria Assessment Display -->
-                <div id="ielts-evaluation-box" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2">
-                    <h4 class="text-xs font-extrabold text-emerald-800">IELTS 4-Criteria Assessment:</h4>
+                    <input type="text" id="user-speaking-input" placeholder="Click mic to speak or type your full answer..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400" onkeydown="if(event.key==='Enter') sendSpeakingResponse()">
+                    
+                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 text-white font-bold rounded-2xl text-xs flex-shrink-0">Send</button>
+                </div>
+                
+                <p id="mic-status-text" class="text-[10px] font-bold text-slate-400 italic">Status: Mic idle. Press the mic icon to start speaking.</p>
+
+                <!-- IELTS REAL EVALUATION BOX -->
+                <div id="ielts-evaluation-box" class="hidden border p-4 rounded-2xl space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 id="ielts-status-title" class="text-xs font-extrabold">IELTS Assessment Result:</h4>
+                        <span id="overall-band" class="text-xs font-black px-2.5 py-1 rounded-lg">Band --</span>
+                    </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-bold">
-                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Fluency: <b class="text-emerald-600">Band 7.0</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Lexical: <b class="text-emerald-600">Band 7.5</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Grammar: <b class="text-emerald-600">Band 6.5</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-emerald-100">Pronunciation: <b class="text-emerald-600">Band 7.0</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-slate-100">Fluency: <b id="score-fluency" class="text-slate-700">--</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-slate-100">Lexical: <b id="score-lexical" class="text-slate-700">--</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-slate-100">Grammar: <b id="score-grammar" class="text-slate-700">--</b></div>
+                        <div class="bg-white p-2 rounded-xl border border-slate-100">Pronunciation: <b id="score-pronun" class="text-slate-700">--</b></div>
                     </div>
-                    <p id="ielts-feedback-text" class="text-xs text-slate-600 font-medium pt-1"></p>
+                    <p id="ielts-feedback-text" class="text-xs font-medium pt-1"></p>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 3: STUDY SESSION (SMART LOOP & ENCOURAGEMENT FEEDBACK) -->
+        <!-- VIEW 3: STUDY SESSION -->
         <div id="view-study-session" class="hidden space-y-4">
             <div class="flex justify-between items-center">
                 <button onclick="exitStudy()" class="text-xs font-bold text-slate-400 hover:text-slate-700">✕ Exit Practice</button>
-                <span id="study-mode-badge" class="text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">Phase 1: MCQ Loop</span>
+                <div class="flex gap-2">
+                    <span id="study-mode-badge" class="text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">Phase 1: MCQ Loop</span>
+                </div>
             </div>
 
             <div id="study-card-container" class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"></div>
@@ -126,7 +140,7 @@
 
     </div>
 
-    <!-- MODAL 1: NEW FOLDER -->
+    <!-- MODALS -->
     <div id="modal-folder" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-3xl w-full max-w-md space-y-4 shadow-xl">
             <h3 class="font-extrabold text-slate-800 text-sm">Create New Folder</h3>
@@ -138,7 +152,6 @@
         </div>
     </div>
 
-    <!-- MODAL 2: NEW SET -->
     <div id="modal-set" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-3xl w-full max-w-lg space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 class="font-extrabold text-slate-800 text-sm">Create Study Set</h3>
@@ -162,7 +175,17 @@
     </div>
 
     <script>
-        let appData = JSON.parse(localStorage.getItem('myVocabAppDataV3')) || {
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        let appData = JSON.parse(localStorage.getItem('myVocabAppDataV7')) || {
             folders: [{ id: 'f1', name: 'IELTS Core Academic' }],
             sets: [{
                 id: 's1',
@@ -178,14 +201,12 @@
 
         const encouragementQuotes = {
             correct: [
-                { quote: "Keep up the momentum! You're mastering this topic.", idiom: "💡 'On a roll' — Experiencing a period of success!" },
-                { quote: "Brilliant effort! Your vocabulary store is expanding.", idiom: "🌟 'Hit the nail on the head' — Absolutely accurate!" },
-                { quote: "Spot on! Consistency is your superpower.", idiom: "🚀 'Sky is the limit' — There is no barrier to your progress!" }
+                { quote: "Keep up the great momentum!", idiom: "💡 'On a roll' — Experiencing a continuous period of success!" },
+                { quote: "Brilliant answer! Your vocabulary store is growing.", idiom: "🌟 'Hit the nail on the head' — Exactly right!" }
             ],
             wrong: [
-                { quote: "Don't sweat it! Making mistakes is part of the learning curve.", idiom: "💪 'Every cloud has a silver lining' — Something good comes from every struggle." },
-                { quote: "Close attempt! This word is pushed to the end of the loop so you can retry.", idiom: "🌱 'Practice makes perfect' — Keep trying and you will master it!" },
-                { quote: "No worries at all! Just a small hiccup on your way to Band 8.0.", idiom: "🔥 'Rome wasn't built in a day' — Great achievement takes time." }
+                { quote: "Don't worry, making mistakes is how we learn!", idiom: "💪 'Every cloud has a silver lining' — Something positive comes from struggle." },
+                { quote: "It's just one mistake! Term moved to end of queue.", idiom: "🌱 'Practice makes perfect' — Keep trying!" }
             ]
         };
 
@@ -193,9 +214,10 @@
         let mcqQueue = [];
         let translateQueue = [];
         let currentPhase = 'mcq';
+        let isAnswered = false;
 
         function saveState() {
-            localStorage.setItem('myVocabAppDataV3', JSON.stringify(appData));
+            localStorage.setItem('myVocabAppDataV7', JSON.stringify(appData));
             renderDashboard();
         }
 
@@ -264,6 +286,7 @@
         }
 
         function renderStudyCard() {
+            isAnswered = false;
             const container = document.getElementById('study-card-container');
             const badge = document.getElementById('study-mode-badge');
 
@@ -285,16 +308,32 @@
 
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Select Correct Definition</span>
-                        <h3 class="text-2xl font-black text-slate-800">${currentTerm.word}</h3>
-                        <div class="grid grid-cols-1 gap-2.5">
-                            ${options.map(opt => `
-                                <button onclick="handleMCQChoice('${opt === currentTerm.meaning}')" class="w-full text-left p-3.5 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Active Recall Practice</span>
+                            <span class="text-[10px] font-extrabold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">Queue: ${mcqQueue.length} left</span>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-2xl font-black text-slate-800">${currentTerm.word}</h3>
+                            <button onclick="speakText('${currentTerm.word}')" class="w-9 h-9 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl flex items-center justify-center text-sm transition">
+                                <i class="fa-solid fa-volume-high"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="options-grid" class="grid grid-cols-1 gap-2.5">
+                            ${options.map((opt) => `
+                                <button onclick="handleMCQChoice('${opt === currentTerm.meaning}', this)" class="option-btn w-full text-left p-3.5 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
                                     ${opt}
                                 </button>
                             `).join('')}
                         </div>
-                        <div id="feedback-panel" class="hidden p-4 rounded-2xl text-xs space-y-1"></div>
+
+                        <div id="feedback-panel" class="hidden p-4 rounded-2xl text-xs space-y-3">
+                            <div id="feedback-content" class="space-y-1"></div>
+                            <button onclick="nextMCQQuestion()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3 rounded-xl text-xs shadow-md flex items-center justify-center gap-2">
+                                <span>Continue</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             } else if (currentPhase === 'translate') {
@@ -303,7 +342,7 @@
                         <div class="text-center py-8 space-y-3">
                             <span class="text-4xl">🌟</span>
                             <h3 class="text-xl font-extrabold text-slate-800">Study Session Completed!</h3>
-                            <p class="text-xs font-semibold text-slate-400">Your vocabulary terms are updated in your memory ledger.</p>
+                            <p class="text-xs font-semibold text-slate-400">All terms updated in Spaced Repetition memory.</p>
                             <button onclick="exitStudy()" class="px-5 py-2.5 bg-purple-500 text-white rounded-2xl text-xs font-bold">Return to Dashboard</button>
                         </div>
                     `;
@@ -317,7 +356,10 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <span class="text-[10px] font-bold text-indigo-500 uppercase">Sentence Translation Challenge</span>
-                        <p class="text-xs font-bold text-slate-700">Translate the prompt into English using <b class="text-purple-600">${currentTerm.word}</b>:</p>
+                        <div class="flex items-center gap-2">
+                            <p class="text-xs font-bold text-slate-700">Translate using target word: <b class="text-purple-600">${currentTerm.word}</b></p>
+                            <button onclick="speakText('${currentTerm.word}')" class="text-purple-600 hover:text-purple-800 text-xs"><i class="fa-solid fa-volume-high"></i></button>
+                        </div>
                         <div class="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100 text-xs font-bold text-indigo-950">
                             "Hành động này mang lại những hậu quả nghiêm trọng đối với hệ sinh thái."
                         </div>
@@ -328,32 +370,46 @@
             }
         }
 
-        function handleMCQChoice(isCorrect) {
-            const currentTerm = mcqQueue.shift();
-            const panel = document.getElementById('feedback-panel');
-            panel.classList.remove('hidden');
+        let pendingChoiceIsCorrect = false;
 
-            if (isCorrect === 'true') {
+        function handleMCQChoice(isCorrect, btnEl) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            pendingChoiceIsCorrect = (isCorrect === 'true');
+            const panel = document.getElementById('feedback-panel');
+            const content = document.getElementById('feedback-content');
+            
+            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+
+            if (pendingChoiceIsCorrect) {
+                btnEl.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+                const res = encouragementQuotes.correct[Math.floor(Math.random() * encouragementQuotes.correct.length)];
+                panel.className = "p-4 rounded-2xl text-xs space-y-3 bg-emerald-50 border border-emerald-200 text-emerald-900";
+                content.innerHTML = `<div class="font-bold text-emerald-800">🎉 Correct!</div><div>${res.quote}</div><div class="text-[11px] opacity-90 font-medium pt-1">${res.idiom}</div>`;
+            } else {
+                btnEl.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+                const res = encouragementQuotes.wrong[Math.floor(Math.random() * encouragementQuotes.wrong.length)];
+                panel.className = "p-4 rounded-2xl text-xs space-y-3 bg-rose-50 border border-rose-200 text-rose-900";
+                content.innerHTML = `<div class="font-bold text-rose-800">💙 Don't give up!</div><div>${res.quote}</div><div class="text-[11px] opacity-90 font-medium pt-1">${res.idiom}</div>`;
+            }
+
+            panel.classList.remove('hidden');
+        }
+
+        function nextMCQQuestion() {
+            const currentTerm = mcqQueue.shift();
+
+            if (pendingChoiceIsCorrect) {
                 currentTerm.status = 'mastered';
                 currentTerm.lastReviewed = Date.now();
-                const res = encouragementQuotes.correct[Math.floor(Math.random() * encouragementQuotes.correct.length)];
-
-                panel.className = "p-4 rounded-2xl text-xs space-y-1 bg-emerald-50 border border-emerald-200 text-emerald-800";
-                panel.innerHTML = `<b>🎉 Correct!</b> ${res.quote}<br><i class="text-[11px] opacity-90">${res.idiom}</i>`;
-
-                setTimeout(() => { renderStudyCard(); }, 1200);
             } else {
-                // CHO CHỌN SAI -> ĐẨY VỀ CUỐI HÀNG (SMART LOOP)
                 currentTerm.status = 'due';
                 mcqQueue.push(currentTerm);
-                const res = encouragementQuotes.wrong[Math.floor(Math.random() * encouragementQuotes.wrong.length)];
-
-                panel.className = "p-4 rounded-2xl text-xs space-y-1 bg-rose-50 border border-rose-200 text-rose-800";
-                panel.innerHTML = `<b>💙 Keep Going!</b> ${res.quote}<br><i class="text-[11px] opacity-90">${res.idiom}</i>`;
-
-                setTimeout(() => { renderStudyCard(); }, 1800);
             }
+
             saveState();
+            renderStudyCard();
         }
 
         function submitTranslation() {
@@ -368,7 +424,77 @@
             document.getElementById('view-dashboard').classList.remove('hidden');
         }
 
-        // AI SPEAKING TIMER & CHAT
+        // ==========================================
+        // REAL MICROPHONE SPEECH RECOGNITION LOGIC
+        // ==========================================
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isRecording = true;
+                const micBtn = document.getElementById('mic-btn');
+                micBtn.classList.add('mic-active');
+                document.getElementById('mic-status-text').innerText = "Status: Listening... Speak your answer now!";
+                document.getElementById('mic-status-text').className = "text-[10px] font-bold text-rose-500 animate-pulse";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-speaking-input').value = transcript;
+                document.getElementById('mic-status-text').innerText = "Status: Voice captured! Pressing send...";
+                
+                // Tự động gửi câu trả lời sau khi nhận diện xong
+                sendSpeakingResponse();
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Mic error:", event.error);
+                stopMicUI();
+                document.getElementById('mic-status-text').innerText = "Status: Error capturing audio. Please try typing.";
+            };
+
+            recognition.onend = function() {
+                stopMicUI();
+            };
+        } else {
+            console.warn("Speech recognition not supported in this browser.");
+        }
+
+        function toggleMic() {
+            if (!recognition) {
+                alert("Speech recognition is not supported in your browser. Please use Chrome or Safari.");
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                stopMicUI();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function stopMicUI() {
+            isRecording = false;
+            const micBtn = document.getElementById('mic-btn');
+            if(micBtn) micBtn.classList.remove('mic-active');
+            const statusText = document.getElementById('mic-status-text');
+            if(statusText) {
+                statusText.innerText = "Status: Mic idle. Press the mic icon to start speaking.";
+                statusText.className = "text-[10px] font-bold text-slate-400 italic";
+            }
+        }
+
+        // ==========================================
+        // IELTS SPEAKING EVALUATION LOGIC
+        // ==========================================
         let speakingSeconds = 0;
         setInterval(() => {
             const isSpeakingActive = !document.getElementById('view-speaking').classList.contains('hidden');
@@ -389,13 +515,77 @@
             chat.innerHTML += `<div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] ml-auto font-semibold">${val}</div>`;
             input.value = '';
 
+            const words = val.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+            const wordCount = words.length;
+
+            let fluencyScore = 4.0;
+            let lexicalScore = 4.0;
+            let grammarScore = 4.0;
+            let pronunScore = 5.0;
+            let feedback = "";
+            let aiReply = "";
+
+            const isLowEffort = wordCount < 5 || val.toLowerCase().includes("don't know") || val.toLowerCase().includes("dont know") || val.toLowerCase().includes("no idea");
+
+            if (isLowEffort) {
+                fluencyScore = 3.5;
+                lexicalScore = 3.5;
+                grammarScore = 4.0;
+                pronunScore = 4.5;
+                feedback = "❌ <b>Critique:</b> Answer is extremely brief or lacks content (IELTS Band 3.5-4.0). You must extend your response by giving reasons, examples, or personal opinions rather than staying silent.";
+                aiReply = "I see. Even if you aren't sure, try guessing or talking about why it's difficult for individuals to reduce carbon emissions. Give it another try!";
+            } else {
+                if (wordCount >= 25) {
+                    fluencyScore = 7.5;
+                    lexicalScore = 7.0;
+                    grammarScore = 7.0;
+                    pronunScore = 7.5;
+                    feedback = "✅ <b>Good coherence:</b> You provided a detailed explanation with adequate length. Consider using more complex academic connectives (e.g., <i>Consequently, Furthermore</i>) to reach Band 8.0.";
+                } else if (wordCount >= 12) {
+                    fluencyScore = 6.0;
+                    lexicalScore = 6.0;
+                    grammarScore = 6.0;
+                    pronunScore = 6.5;
+                    feedback = "⚠️ <b>Adequate response:</b> Good effort! However, to boost your score above Band 6.5, try to elaborate further using conditional sentences (e.g., <i>'If people were to adopt...'</i>).";
+                } else {
+                    fluencyScore = 5.0;
+                    lexicalScore = 5.0;
+                    grammarScore = 5.0;
+                    pronunScore = 5.5;
+                    feedback = "⚠️ <b>Too Short:</b> Your sentence is grammatically acceptable but too short for Part 3 IELTS Speaking standards. Aim for at least 3-4 full sentences.";
+                }
+                aiReply = "That's a very valid point! How do you think local governments can support citizens in making these eco-friendly choices?";
+            }
+
+            const overallBand = ((fluencyScore + lexicalScore + grammarScore + pronunScore) / 4).toFixed(1);
+
             setTimeout(() => {
-                chat.innerHTML += `<div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold">🤖 AI Examiner: "Excellent point! Could you elaborate further on how governments could incentivize this behavior?"</div>`;
+                chat.innerHTML += `
+                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold flex justify-between items-start gap-2">
+                        <span>🤖 AI Examiner: "${aiReply}"</span>
+                        <button onclick="speakText('${aiReply}')" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>`;
                 chat.scrollTop = chat.scrollHeight;
 
-                document.getElementById('ielts-evaluation-box').classList.remove('hidden');
-                document.getElementById('ielts-feedback-text').innerText = "Solid vocabulary! To reach Band 7.5+ in Fluency, try connecting your main ideas using transition phrases like 'Furthermore' or 'On the other hand'.";
-            }, 1000);
+                const evalBox = document.getElementById('ielts-evaluation-box');
+                evalBox.classList.remove('hidden');
+
+                if (isLowEffort) {
+                    evalBox.className = "bg-rose-50 border border-rose-200 p-4 rounded-2xl space-y-2 text-rose-900";
+                    document.getElementById('overall-band').className = "text-xs font-black px-2.5 py-1 rounded-lg bg-rose-200 text-rose-800";
+                } else {
+                    evalBox.className = "bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2 text-emerald-950";
+                    document.getElementById('overall-band').className = "text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-200 text-emerald-800";
+                }
+
+                document.getElementById('overall-band').innerText = `Overall Band ${overallBand}`;
+                document.getElementById('score-fluency').innerText = fluencyScore.toFixed(1);
+                document.getElementById('score-lexical').innerText = lexicalScore.toFixed(1);
+                document.getElementById('score-grammar').innerText = grammarScore.toFixed(1);
+                document.getElementById('score-pronun').innerText = pronunScore.toFixed(1);
+                document.getElementById('ielts-feedback-text').innerHTML = feedback;
+
+            }, 800);
         }
 
         // MODALS
@@ -427,7 +617,7 @@
                 }
             });
 
-            if(!title || !terms.length) return alert('Please enter set title and terms!');
+            if(!title || !terms.length) return alert('Please fill in title and terms!');
             appData.sets.push({ id: 's_' + Date.now(), folderId, title, terms });
             closeModal('modal-set');
             saveState();
