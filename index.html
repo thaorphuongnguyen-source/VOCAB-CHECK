@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Vocab & Active Recall</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .perspective { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-indigo-600"><i class="fa-solid fa-brain"></i> IELTS Active Recall Master</h1>
+            <p class="text-slate-500 text-sm">Lưu từ vựng, học Flashcard & Luyện tập ghi nhớ chủ động</p>
+        </header>
+
+        <!-- Form Nhập Từ -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-indigo-500"></i> Thêm từ vựng mới
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input id="wordInput" type="text" placeholder="Từ tiếng Anh (Ví dụ: Detrimental)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
+                <input id="meaningInput" type="text" placeholder="Nghĩa tiếng Việt (Ví dụ: Có hại, gây bất lợi)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
+                <input id="phoneticInput" type="text" placeholder="Phiên âm (Ví dụ: /ˌdet.rəˈmen.təl/)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
+                <input id="exampleInput" type="text" placeholder="Ví dụ IELTS (Ví dụ: Smoking has a detrimental effect on health.)" class="p-3 border rounded-xl w-full focus:outline-indigo-500 text-sm">
+            </div>
+            <button onclick="addWord()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition text-sm">
+                <i class="fa-solid fa-bookmark mr-1"></i> Lưu vào kho từ vựng
+            </button>
+        </div>
+
+        <!-- Khu vực Flashcard -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-clone text-indigo-500"></i> Flashcard ôn tập (<span id="vocabCount">0</span> từ)
+                </h2>
+                <div class="space-x-2">
+                    <button onclick="prevCard()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-chevron-left"></i> Trước</button>
+                    <button onclick="nextCard()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold">Sau <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Card Container -->
+            <div class="perspective w-full h-64 cursor-pointer" onclick="flipCard()">
+                <div id="flashcard" class="relative w-full h-full duration-500 transform-style-3d shadow-md rounded-2xl border border-indigo-100 bg-indigo-50 flex items-center justify-center p-6 text-center">
+                    <!-- Mặt trước -->
+                    <div class="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 space-y-2">
+                        <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Tiếng Anh (Bấm để lật)</span>
+                        <h3 id="cardWord" class="text-3xl font-extrabold text-indigo-900">Chưa có từ vựng</h3>
+                        <p id="cardPhonetic" class="text-slate-500 italic text-sm"></p>
+                    </div>
+                    <!-- Mặt sau -->
+                    <div class="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 text-white rounded-2xl flex flex-col items-center justify-center p-6 space-y-3">
+                        <span class="text-xs font-bold uppercase tracking-widest text-indigo-200">Nghĩa & Ví dụ</span>
+                        <h3 id="cardMeaning" class="text-2xl font-bold"></h3>
+                        <p id="cardExample" class="text-xs text-indigo-100 italic max-w-md"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vocabList = JSON.parse(localStorage.getItem('myIELTSVocab')) || [];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        function saveToStorage() {
+            localStorage.setItem('myIELTSVocab', JSON.stringify(vocabList));
+            updateUI();
+        }
+
+        function addWord() {
+            const word = document.getElementById('wordInput').value.trim();
+            const meaning = document.getElementById('meaningInput').value.trim();
+            const phonetic = document.getElementById('phoneticInput').value.trim();
+            const example = document.getElementById('exampleInput').value.trim();
+
+            if (!word || !meaning) {
+                alert('Vui lòng nhập ít nhất Từ tiếng Anh và Nghĩa tiếng Việt!');
+                return;
+            }
+
+            vocabList.push({ word, meaning, phonetic, example, level: 1, nextReview: Date.now() });
+            
+            // Clear inputs
+            document.getElementById('wordInput').value = '';
+            document.getElementById('meaningInput').value = '';
+            document.getElementById('phoneticInput').value = '';
+            document.getElementById('exampleInput').value = '';
+
+            currentIndex = vocabList.length - 1;
+            saveToStorage();
+        }
+
+        function flipCard() {
+            if (vocabList.length === 0) return;
+            const card = document.getElementById('flashcard');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                card.classList.add('rotate-y-180');
+            } else {
+                card.classList.remove('rotate-y-180');
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('vocabCount').innerText = vocabList.length;
+            const card = document.getElementById('flashcard');
+            card.classList.remove('rotate-y-180');
+            isFlipped = false;
+
+            if (vocabList.length === 0) {
+                document.getElementById('cardWord').innerText = "Chưa có từ vựng";
+                document.getElementById('cardPhonetic').innerText = "";
+                document.getElementById('cardMeaning').innerText = "Hãy nhập từ mới ở trên!";
+                document.getElementById('cardExample').innerText = "";
+                return;
+            }
+
+            const current = vocabList[currentIndex];
+            document.getElementById('cardWord').innerText = current.word;
+            document.getElementById('cardPhonetic').innerText = current.phonetic || '';
+            document.getElementById('cardMeaning').innerText = current.meaning;
+            document.getElementById('cardExample').innerText = current.example ? `"${current.example}"` : '';
+        }
+
+        function nextCard() {
+            if (vocabList.length === 0) return;
+            currentIndex = (currentIndex + 1) % vocabList.length;
+            updateUI();
+        }
+
+        function prevCard() {
+            if (vocabList.length === 0) return;
+            currentIndex = (currentIndex - 1 + vocabList.length) % vocabList.length;
+            updateUI();
+        }
+
+        // Khởi chạy ban đầu
+        updateUI();
+    </script>
+</body>
+</html>
