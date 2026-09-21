@@ -13,12 +13,14 @@
         .cat-float { animation: floatCat 3s infinite ease-in-out; }
         @keyframes pulseRed { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
         .mic-active { animation: pulseRed 1s infinite ease-in-out; background-color: #ef4444 !important; color: white !important; }
+        @keyframes blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+        .thinking-dot { animation: blink 1s infinite; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-700 min-h-screen p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto space-y-6">
-        
+
         <!-- HEADER & DUAL STREAK GOALS & DUE WORDS -->
         <header class="bg-white p-5 rounded-3xl border border-pink-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -38,7 +40,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <!-- KHUNG STREAK -->
                 <div class="bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-2xl flex items-center gap-2">
                     <span class="text-lg">🔥</span>
                     <div>
@@ -47,7 +48,6 @@
                     </div>
                 </div>
 
-                <!-- KHUNG TỪ VỰNG HẾT HẠN (DUE WORDS) -->
                 <div class="bg-rose-50 border border-rose-200 px-3.5 py-2 rounded-2xl flex items-center gap-2">
                     <span class="text-lg">⏰</span>
                     <div>
@@ -56,7 +56,6 @@
                     </div>
                 </div>
 
-                <!-- KHUNG MỤC TIÊU -->
                 <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl space-y-1 text-[11px] font-bold">
                     <div class="flex justify-between gap-3">
                         <span>📚 Vocab Goal:</span>
@@ -67,12 +66,14 @@
                         <span id="goal-speaking" class="text-indigo-600">0/15 mins</span>
                     </div>
                 </div>
+
+                <button onclick="openSettings()" class="w-11 h-11 bg-slate-100 hover:bg-slate-200 rounded-2xl text-lg flex-shrink-0" title="Settings: giọng đọc & AI Coach">⚙️</button>
             </div>
         </header>
 
         <!-- MAIN NAVIGATION -->
         <nav class="flex gap-2 bg-slate-200/60 p-1.5 rounded-2xl">
-            <button onclick="switchMainTab('dash')" id="tab-dash" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm">Folders & Sets</button>
+            <button onclick="switchMainTab('dashboard')" id="tab-dashboard" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm">Folders & Sets</button>
             <button onclick="switchMainTab('speaking')" id="tab-speaking" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800">🎙️ AI Speaking Room (15m)</button>
         </nav>
 
@@ -92,52 +93,38 @@
         <!-- VIEW 2: AI VOICE SPEAKING ROOM -->
         <div id="view-speaking" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center gap-2 flex-wrap">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-800">IELTS Speaking Examiner</h2>
-                        <p class="text-xs text-slate-400 font-semibold">Real IELTS Criteria Assessment & Voice Room</p>
+                        <p class="text-xs text-slate-400 font-semibold">Trả lời → nhận sửa lỗi, gợi ý ý tưởng & bản nâng cấp Band 8+</p>
                     </div>
-                    <span id="speaking-timer" class="text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">15:00 Remaining</span>
+                    <div class="flex items-center gap-2">
+                        <button id="ai-mode-badge" onclick="openSettings()" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border"></button>
+                        <span id="speaking-timer" class="text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">15:00 Remaining</span>
+                    </div>
                 </div>
 
-                <div id="chat-history" class="h-64 bg-slate-50 border border-slate-200 p-4 rounded-2xl overflow-y-auto space-y-3 text-xs">
-                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold flex justify-between items-start gap-2">
-                        <span>🤖 AI Examiner: "Hello! Today let's discuss environmental conservation. What are some effective measures individuals can take to reduce their carbon footprint?"</span>
-                        <button onclick="speakText('Hello! Today let\'s discuss environmental conservation. What are some effective measures individuals can take to reduce their carbon footprint?')" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-volume-high"></i></button>
-                    </div>
-                </div>
+                <div id="chat-history" class="h-64 bg-slate-50 border border-slate-200 p-4 rounded-2xl overflow-y-auto space-y-3 text-xs"></div>
 
                 <div class="flex gap-2 items-center">
-                    <!-- NÚT MIC BẤM TAY MỞ/TẮT -->
                     <button id="mic-btn" onclick="toggleMic()" class="w-12 h-12 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-2xl flex items-center justify-center text-base font-bold transition flex-shrink-0" title="Click to Start/Stop Speaking">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
 
-                    <input type="text" id="user-speaking-input" placeholder="Click mic to speak (click again to stop) or type your answer..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400" onkeydown="if(event.key==='Enter') sendSpeakingResponse()">
-                    
-                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs flex-shrink-0">Send</button>
+                    <input type="text" id="user-speaking-input" placeholder="Click mic to speak (click again to stop) or type your answer..." class="flex-1 min-w-0 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400" onkeydown="if(event.key==='Enter') sendSpeakingResponse()">
+
+                    <button id="help-btn" onclick="sendSpeakingResponse(true)" class="px-3 py-3 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-2xl text-xs flex-shrink-0" title="Bí ý tưởng? Bấm để nhận gợi ý">💡 Bí rồi</button>
+                    <button id="send-btn" onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs flex-shrink-0">Send</button>
                 </div>
-                
+
                 <p id="mic-status-text" class="text-[10px] font-bold text-slate-400 italic">Status: Mic ready. Click mic icon to START speaking.</p>
 
-                <!-- IELTS REAL EVALUATION BOX -->
-                <div id="ielts-evaluation-box" class="hidden border p-4 rounded-2xl space-y-2">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-extrabold">IELTS Assessment Result:</h4>
-                        <span id="overall-band" class="text-xs font-black px-2.5 py-1 rounded-lg">Band --</span>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-bold">
-                        <div class="bg-white p-2 rounded-xl border border-slate-100">Fluency: <b id="score-fluency" class="text-slate-700">--</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-slate-100">Lexical: <b id="score-lexical" class="text-slate-700">--</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-slate-100">Grammar: <b id="score-grammar" class="text-slate-700">--</b></div>
-                        <div class="bg-white p-2 rounded-xl border border-slate-100">Pronunciation: <b id="score-pronun" class="text-slate-700">--</b></div>
-                    </div>
-                    <p id="ielts-feedback-text" class="text-xs font-medium pt-1"></p>
-                </div>
+                <!-- COACH FEEDBACK -->
+                <div id="coach-box" class="hidden border p-4 rounded-2xl space-y-3 text-xs"></div>
             </div>
         </div>
 
-        <!-- VIEW 3: STUDY SESSION (TRỌN BỘ 4 PHASES) -->
+        <!-- VIEW 3: STUDY SESSION -->
         <div id="view-study-session" class="hidden space-y-4">
             <div class="flex justify-between items-center">
                 <button onclick="exitStudy()" class="text-xs font-bold text-slate-400 hover:text-slate-700">✕ Exit Practice</button>
@@ -185,24 +172,279 @@
         </div>
     </div>
 
+    <!-- SETTINGS: VOICE + AI COACH -->
+    <div id="modal-settings" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-lg space-y-5 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 class="font-extrabold text-slate-800 text-sm">⚙️ Settings</h3>
+
+            <div class="space-y-2">
+                <div class="text-[11px] font-extrabold text-slate-500 uppercase">🔊 Giọng đọc (Voice)</div>
+                <select id="select-voice" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold"></select>
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] font-bold text-slate-500">Tốc độ</span>
+                    <input type="range" id="range-rate" min="0.6" max="1.2" step="0.05" class="flex-1" oninput="document.getElementById('rate-label').innerText = this.value + 'x'">
+                    <span id="rate-label" class="text-[11px] font-extrabold text-slate-700 w-10">0.92x</span>
+                    <button onclick="testVoice()" class="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-[11px] font-bold">▶ Thử</button>
+                </div>
+                <p class="text-[10px] font-semibold text-slate-400 leading-relaxed">
+                    Mẹo: dùng <b>Microsoft Edge</b> và chọn giọng có chữ <b>"Online (Natural)"</b> (Aria, Jenny, Guy, Sonia…) — tự nhiên nhất, miễn phí.
+                    Chrome thì chọn "Google US English / UK English". iPhone/Mac thì chọn giọng Premium/Enhanced (Ava, Samantha…).
+                </p>
+            </div>
+
+            <div class="space-y-2 border-t pt-4">
+                <div class="text-[11px] font-extrabold text-slate-500 uppercase">🧠 AI Coach (sửa lỗi thật sự)</div>
+                <select id="select-provider" onchange="onProviderChange()" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold">
+                    <option value="none">📴 Offline (không cần key — sửa lỗi cơ bản theo luật)</option>
+                    <option value="gemini">✨ Google Gemini (có free tier)</option>
+                    <option value="anthropic">🟠 Claude (Anthropic API)</option>
+                </select>
+                <input type="password" id="input-api-key" placeholder="Dán API key vào đây..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold">
+                <input type="text" id="input-model" placeholder="Model" class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold">
+                <p id="provider-hint" class="text-[10px] font-semibold text-slate-400 leading-relaxed"></p>
+                <p class="text-[10px] font-semibold text-rose-400 leading-relaxed">Key chỉ lưu trong trình duyệt của bạn (localStorage). Đừng gửi file này cho người khác khi đã nhập key.</p>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-1">
+                <button onclick="closeModal('modal-settings')" class="px-4 py-2 text-xs font-bold text-slate-400">Cancel</button>
+                <button onclick="saveSettings()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-xs font-bold">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // AUDIO AI PHÁT ÂM MƯỢT MÀ
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.88;
-                utterance.pitch = 1.0;
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        const $ = id => document.getElementById(id);
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function roundHalf(x) { return Math.round(x * 2) / 2; }
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-                const voices = window.speechSynthesis.getVoices();
-                const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Karen')));
-                if (preferredVoice) utterance.voice = preferredVoice;
+        // ==========================================
+        // SETTINGS
+        // ==========================================
+        const SETTINGS_KEY = 'meowVocabSettingsV1';
+        let settings = { provider: 'none', apiKey: '', model: '', voiceName: '', rate: 0.92 };
+        try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) {}
 
-                window.speechSynthesis.speak(utterance);
+        const DEFAULT_MODELS = { gemini: 'gemini-2.5-flash', anthropic: 'claude-haiku-4-5-20251001' };
+        const PROVIDER_HINTS = {
+            none: 'Chế độ offline: sửa được các lỗi ngữ pháp phổ biến, nâng cấp từ vựng theo bảng có sẵn, và gợi ý ý tưởng theo câu hỏi. Không hiểu ngữ cảnh sâu như AI thật.',
+            gemini: 'Lấy key miễn phí tại aistudio.google.com → "Get API key". Nếu báo lỗi model, hãy đổi tên model (ví dụ gemini-2.5-flash hoặc gemini-flash-latest).',
+            anthropic: 'Lấy key tại console.anthropic.com. Mặc định dùng Haiku cho nhanh và rẻ; có thể đổi sang model mạnh hơn.'
+        };
+
+        function hasAI() { return settings.provider !== 'none' && !!settings.apiKey; }
+
+        function updateModeBadge() {
+            const b = $('ai-mode-badge');
+            if (!b) return;
+            if (hasAI()) {
+                b.innerText = settings.provider === 'gemini' ? '🧠 AI Coach: Gemini' : '🧠 AI Coach: Claude';
+                b.className = 'text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700';
+            } else {
+                b.innerText = '📴 Offline mode — bấm để bật AI';
+                b.className = 'text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100';
             }
         }
 
+        function onProviderChange() {
+            const p = $('select-provider').value;
+            $('provider-hint').innerText = PROVIDER_HINTS[p];
+            $('input-api-key').disabled = p === 'none';
+            $('input-model').disabled = p === 'none';
+            $('input-model').placeholder = p === 'none' ? 'Model' : ('Model (mặc định: ' + DEFAULT_MODELS[p] + ')');
+        }
+
+        function openSettings() {
+            populateVoiceSelect();
+            $('range-rate').value = settings.rate;
+            $('rate-label').innerText = settings.rate + 'x';
+            $('select-provider').value = settings.provider;
+            $('input-api-key').value = settings.apiKey;
+            $('input-model').value = settings.model;
+            onProviderChange();
+            openModal('modal-settings');
+        }
+
+        function saveSettings() {
+            settings.voiceName = $('select-voice').value;
+            settings.rate = parseFloat($('range-rate').value) || 0.92;
+            settings.provider = $('select-provider').value;
+            settings.apiKey = $('input-api-key').value.trim();
+            settings.model = $('input-model').value.trim();
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            updateModeBadge();
+            closeModal('modal-settings');
+        }
+
+        // ==========================================
+        // TEXT-TO-SPEECH (auto-picks the best voice, lets you choose)
+        // ==========================================
+        const TTS = { voices: [] };
+
+        function voiceScore(v) {
+            const lang = (v.lang || '').toLowerCase().replace('_', '-');
+            if (!lang.startsWith('en')) return -1;
+            const n = v.name.toLowerCase();
+            let s = 0;
+            if (n.includes('natural')) s += 100;                       // Edge neural voices
+            if (n.includes('online')) s += 20;
+            if (n.includes('premium') || n.includes('enhanced')) s += 60; // Apple high-quality
+            if (n.includes('google')) s += 50;                          // Chrome cloud voices
+            if (/aria|jenny|guy|sonia|ryan|libby|davis|emma|brian/.test(n)) s += 30;
+            if (/samantha|ava|allison|zoe|daniel|karen|serena|moira|tessa/.test(n)) s += 25;
+            if (lang === 'en-us') s += 5;
+            if (lang === 'en-gb') s += 4;
+            if (/espeak|compact|novelty|bad news|zarvox|whisper|trinoids|bubbles|cellos/.test(n)) s -= 80;
+            return s;
+        }
+
+        function loadVoices() {
+            if (!('speechSynthesis' in window)) return;
+            TTS.voices = window.speechSynthesis.getVoices() || [];
+        }
+
+        function getVoice(nameOverride) {
+            const name = nameOverride !== undefined ? nameOverride : settings.voiceName;
+            if (name) {
+                const chosen = TTS.voices.find(v => v.name === name);
+                if (chosen) return chosen;
+            }
+            const ranked = TTS.voices.filter(v => voiceScore(v) >= 0).sort((a, b) => voiceScore(b) - voiceScore(a));
+            return ranked[0] || null;
+        }
+
+        function populateVoiceSelect() {
+            const sel = $('select-voice');
+            if (!sel) return;
+            loadVoices();
+            const list = TTS.voices.filter(v => voiceScore(v) >= 0).sort((a, b) => voiceScore(b) - voiceScore(a));
+            const best = getVoice('');
+            sel.innerHTML = `<option value="">🤖 Tự động${best ? ' — đang chọn: ' + esc(best.name) : ''}</option>` +
+                list.map(v => `<option value="${esc(v.name)}">${voiceScore(v) >= 50 ? '⭐ ' : ''}${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+            sel.value = list.some(v => v.name === settings.voiceName) ? settings.voiceName : '';
+        }
+
+        function speakText(text, overrides) {
+            if (!('speechSynthesis' in window)) return;
+            const synth = window.speechSynthesis;
+            if (!TTS.voices.length) loadVoices();
+            synth.cancel();
+
+            const voice = getVoice(overrides && overrides.voiceName !== undefined ? overrides.voiceName : undefined);
+            const rate = overrides && overrides.rate ? overrides.rate : settings.rate;
+
+            // Split into short sentences: smoother prosody and avoids Chrome cutting off long text
+            const clean = String(text).replace(/\s+/g, ' ').trim();
+            const chunks = (clean.match(/[^.!?;:]+[.!?;:]*/g) || [clean]).map(c => c.trim()).filter(Boolean);
+            chunks.forEach(chunk => {
+                const u = new SpeechSynthesisUtterance(chunk);
+                if (voice) { u.voice = voice; u.lang = voice.lang; } else { u.lang = 'en-US'; }
+                u.rate = rate;
+                u.pitch = 1;
+                synth.speak(u);
+            });
+            if (synth.paused) synth.resume();
+        }
+
+        function testVoice() {
+            speakText('Hello! This is how I sound. Planting more trees can mitigate the damage, but it will not solve everything.', {
+                voiceName: $('select-voice').value,
+                rate: parseFloat($('range-rate').value) || 0.92
+            });
+        }
+
+        if ('speechSynthesis' in window) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        // Any element with data-say="..." reads its text aloud (avoids quote-escaping bugs in onclick)
+        document.addEventListener('click', e => {
+            const b = e.target.closest('[data-say]');
+            if (b) speakText(b.dataset.say);
+        });
+
+        // ==========================================
+        // IDIOMS & QUOTES (shown after every vocab answer)
+        // ==========================================
+        const WORD_IDIOMS = {
+            detrimental: { k: 'idiom', en: 'Do more harm than good', vi: 'Gây hại nhiều hơn có lợi', ex: 'Skipping sleep to study can do more harm than good.' },
+            mitigate:    { k: 'idiom', en: 'Take the edge off', vi: 'Làm dịu bớt, giảm nhẹ', ex: 'Planting trees can take the edge off urban heat.' },
+            exacerbate:  { k: 'idiom', en: 'Add fuel to the fire', vi: 'Đổ thêm dầu vào lửa', ex: 'Cutting down more forests will only add fuel to the fire.' },
+            alleviate:   { k: 'idiom', en: 'Ease the burden', vi: 'Giảm bớt gánh nặng', ex: 'Free public transport could ease the burden on low-income families.' },
+            crucial:     { k: 'idiom', en: 'Make or break', vi: 'Quyết định thành bại', ex: 'The next decade will make or break our climate goals.' },
+            inevitable:  { k: 'idiom', en: 'The writing is on the wall', vi: 'Điều chắc chắn sẽ xảy ra đã quá rõ', ex: 'For coal plants, the writing is on the wall.' },
+            deteriorate: { k: 'idiom', en: 'Go downhill', vi: 'Xuống dốc, tệ đi', ex: 'Air quality has gone downhill since the factory opened.' },
+            trivial:     { k: 'idiom', en: 'A drop in the ocean', vi: 'Muối bỏ bể (quá nhỏ so với nhu cầu)', ex: 'One recycled bottle is a drop in the ocean, but habits add up.' },
+            urgent:      { k: 'idiom', en: 'Time is of the essence', vi: 'Thời gian là yếu tố then chốt', ex: 'With rising sea levels, time is of the essence.' },
+            controversial: { k: 'idiom', en: 'A hot potato', vi: 'Vấn đề nhạy cảm, gây tranh cãi', ex: 'Nuclear energy is still a hot potato in many countries.' },
+            obvious:     { k: 'idiom', en: 'Plain as day', vi: 'Rõ như ban ngày', ex: 'The link between pollution and health is plain as day.' },
+            vulnerable:  { k: 'idiom', en: 'A sitting duck', vi: 'Dễ bị tấn công / bị hại', ex: 'Coastal towns are sitting ducks when storms hit.' },
+            persist:     { k: 'idiom', en: 'Stick to your guns', vi: 'Giữ vững lập trường', ex: 'Activists stuck to their guns and the law changed.' },
+            eliminate:   { k: 'idiom', en: 'Nip it in the bud', vi: 'Dập tắt từ trong trứng nước', ex: 'Early education can nip bad habits in the bud.' },
+            prevent:     { k: 'quote', en: 'Prevention is better than cure.', by: 'English proverb', vi: 'Phòng bệnh hơn chữa bệnh.' },
+            awareness:   { k: 'idiom', en: 'Spread the word', vi: 'Lan truyền thông tin', ex: 'Social media helps us spread the word about recycling.' },
+            sustainable: { k: 'idiom', en: 'In it for the long haul', vi: 'Kiên trì theo đuổi lâu dài', ex: 'Sustainable living means being in it for the long haul.' }
+        };
+
+        const IDIOM_POOL = {
+            correct: [
+                { k: 'idiom', en: 'Hit the nail on the head', vi: 'Nói/làm đúng trọng tâm', ex: 'You hit the nail on the head with that answer.' },
+                { k: 'idiom', en: 'On the ball', vi: 'Nhanh nhạy, làm rất tốt', ex: 'You are really on the ball today.' },
+                { k: 'idiom', en: 'A piece of cake', vi: 'Dễ như ăn bánh', ex: 'That word was a piece of cake for you!' },
+                { k: 'idiom', en: 'Go from strength to strength', vi: 'Ngày càng tiến bộ', ex: 'Your vocabulary is going from strength to strength.' },
+                { k: 'idiom', en: 'Ace it', vi: 'Làm xuất sắc', ex: 'She aced the speaking test.' },
+                { k: 'quote', en: 'The limits of my language mean the limits of my world.', by: 'Ludwig Wittgenstein', vi: 'Giới hạn ngôn ngữ của tôi là giới hạn thế giới của tôi.' },
+                { k: 'quote', en: 'It always seems impossible until it is done.', by: 'Nelson Mandela', vi: 'Mọi thứ luôn có vẻ bất khả thi cho đến khi ta làm được.' }
+            ],
+            wrong: [
+                { k: 'idiom', en: 'Practice makes perfect', vi: 'Có công mài sắt có ngày nên kim', ex: 'Keep going — practice makes perfect.' },
+                { k: 'idiom', en: "Rome wasn't built in a day", vi: 'Việc lớn cần nhiều thời gian', ex: "Don't stress, Rome wasn't built in a day." },
+                { k: 'idiom', en: 'Back to the drawing board', vi: 'Làm lại từ đầu', ex: 'Missed it? Back to the drawing board — you will get it.' },
+                { k: 'idiom', en: 'You live and learn', vi: 'Sai một lần, nhớ cả đời', ex: 'You live and learn — now this word will stick.' },
+                { k: 'idiom', en: 'Better luck next time', vi: 'Lần sau sẽ tốt hơn', ex: 'Better luck next time — this word is coming back soon.' },
+                { k: 'quote', en: 'Fall seven times, stand up eight.', by: 'Japanese proverb', vi: 'Ngã bảy lần, đứng dậy tám lần.' },
+                { k: 'quote', en: 'It does not matter how slowly you go as long as you do not stop.', by: 'Confucius', vi: 'Đi chậm không quan trọng, miễn là đừng dừng lại.' }
+            ],
+            neutral: [
+                { k: 'idiom', en: 'Step by step', vi: 'Từng bước một', ex: 'Learn vocabulary step by step.' },
+                { k: 'idiom', en: 'Keep the ball rolling', vi: 'Giữ đà, tiếp tục nào', ex: 'Keep the ball rolling — one more word!' },
+                { k: 'idiom', en: 'Once in a blue moon', vi: 'Hiếm khi', ex: 'Native speakers use that word only once in a blue moon.' },
+                { k: 'idiom', en: 'Learn the ropes', vi: 'Học những điều cơ bản', ex: 'Every IELTS learner has to learn the ropes.' }
+            ]
+        };
+
+        function pickIdiom(word, mood) {
+            const specific = WORD_IDIOMS[String(word || '').toLowerCase()];
+            if (specific) return specific;
+            return pick(IDIOM_POOL[mood] || IDIOM_POOL.neutral);
+        }
+
+        function idiomHtml(word, mood) {
+            const it = pickIdiom(word, mood);
+            const isQuote = it.k === 'quote';
+            const say = it.en;
+            return `
+                <div class="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-1 text-left font-semibold">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] font-extrabold text-amber-600">${isQuote ? '💬 Quote' : '🪄 Idiom'}</span>
+                        <button data-say="${esc(say)}" class="text-amber-600 hover:text-amber-800 text-xs" title="Nghe"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
+                    <div class="text-sm font-extrabold text-slate-800">${isQuote ? '“' + esc(it.en) + '”' : esc(it.en)}</div>
+                    ${isQuote ? `<div class="text-[11px] text-slate-500">— ${esc(it.by)}</div>` : ''}
+                    <div class="text-[11px] text-slate-600">= ${esc(it.vi)}</div>
+                    ${it.ex ? `<div class="text-[11px] italic text-slate-500">Ex: ${esc(it.ex)}</div>` : ''}
+                </div>`;
+        }
+
+        // ==========================================
+        // APP DATA
+        // ==========================================
         let appData = JSON.parse(localStorage.getItem('myVocabAppDataV8')) || {
             folders: [{ id: 'f1', name: 'IELTS Core Academic' }],
             sets: [{
@@ -222,7 +464,7 @@
         let phase2Queue = [];
         let phase3Queue = [];
         let phase4Queue = [];
-        let currentPhase = 'mcq';
+        let currentPhase = 'phase1';
         let isAnswered = false;
 
         function saveState() {
@@ -231,17 +473,17 @@
         }
 
         function switchMainTab(tab) {
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-speaking').classList.add('hidden');
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-
-            document.getElementById('tab-dash').className = "flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800";
-            document.getElementById('tab-speaking').className = "flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800";
-            document.getElementById(`tab-${tab}`).className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm";
+            ['dashboard', 'speaking', 'study-session'].forEach(v => $('view-' + v).classList.add('hidden'));
+            $('view-' + tab).classList.remove('hidden');
+            ['dashboard', 'speaking'].forEach(t => {
+                $('tab-' + t).className = t === tab
+                    ? 'flex-1 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm'
+                    : 'flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800';
+            });
         }
 
         function renderDashboard() {
-            const container = document.getElementById('folder-container');
+            const container = $('folder-container');
             container.innerHTML = '';
             let totalDue = 0;
 
@@ -250,7 +492,7 @@
                 let html = `
                     <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
                         <div class="flex justify-between items-center border-b pb-2">
-                            <span class="text-xs font-extrabold text-slate-800">📁 ${folder.name}</span>
+                            <span class="text-xs font-extrabold text-slate-800">📁 ${esc(folder.name)}</span>
                             <span class="text-[10px] font-bold text-slate-400">${sets.length} Sets</span>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -263,7 +505,7 @@
                         <div class="p-4 border border-slate-200 rounded-2xl bg-purple-50/20 space-y-2">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-xs">${set.title}</h4>
+                                    <h4 class="font-bold text-slate-800 text-xs">${esc(set.title)}</h4>
                                     <span class="text-[10px] font-semibold text-slate-400">${set.terms.length} terms</span>
                                 </div>
                                 <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">${dueCount} Due</span>
@@ -280,14 +522,17 @@
                 container.innerHTML += html;
             });
 
-            document.getElementById('total-due-count').innerText = totalDue;
+            $('total-due-count').innerText = totalDue;
         }
 
+        // ==========================================
+        // STUDY SESSION
+        // ==========================================
         function startStudySet(setId, dueOnly) {
             currentActiveSet = appData.sets.find(s => s.id === setId);
             let termsToStudy = dueOnly ? currentActiveSet.terms.filter(t => t.status === 'due' || !t.lastReviewed) : [...currentActiveSet.terms];
-            
-            if(termsToStudy.length === 0) return alert('No due terms to review right now!');
+
+            if (termsToStudy.length === 0) return alert('No due terms to review right now!');
 
             phase1Queue = [...termsToStudy];
             phase2Queue = [...termsToStudy];
@@ -295,60 +540,51 @@
             phase4Queue = [...termsToStudy];
             currentPhase = 'phase1';
 
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-study-session').classList.remove('hidden');
+            switchMainTab('study-session');
             renderStudyCard();
         }
 
+        const NEXT_BTN = 'w-full mt-3 text-white font-bold py-2.5 rounded-2xl text-xs';
+
         function renderStudyCard() {
             isAnswered = false;
-            const container = document.getElementById('study-card-container');
-            const badge = document.getElementById('study-mode-badge');
+            const container = $('study-card-container');
+            const badge = $('study-mode-badge');
 
             // PHASE 1: MCQ
             if (currentPhase === 'phase1') {
-                if (phase1Queue.length === 0) {
-                    currentPhase = 'phase2';
-                    renderStudyCard();
-                    return;
-                }
+                if (phase1Queue.length === 0) { currentPhase = 'phase2'; renderStudyCard(); return; }
 
                 badge.innerText = `Phase 1: MCQ Recognition (${phase1Queue.length} Left)`;
                 badge.className = "text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full";
 
                 const currentTerm = phase1Queue[0];
-                let options = [currentTerm.meaning];
-                let others = currentActiveSet.terms.filter(t => t.word !== currentTerm.word);
-                others.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(t => options.push(t.meaning));
-                options.sort(() => 0.5 - Math.random());
+                const others = currentActiveSet.terms.filter(t => t.word !== currentTerm.word).sort(() => 0.5 - Math.random()).slice(0, 3);
+                const options = [...new Set([currentTerm.meaning, ...others.map(t => t.meaning)])].sort(() => 0.5 - Math.random());
 
                 container.innerHTML = `
                     <div class="space-y-4">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 1: Select Correct Meaning</span>
                         <div class="flex items-center gap-3">
-                            <h3 class="text-2xl font-black text-slate-800">${currentTerm.word}</h3>
-                            <button onclick="speakText('${currentTerm.word}')" class="w-8 h-8 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl flex items-center justify-center text-xs">
+                            <h3 class="text-2xl font-black text-slate-800">${esc(currentTerm.word)}</h3>
+                            <button data-say="${esc(currentTerm.word)}" class="w-8 h-8 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-volume-high"></i>
                             </button>
                         </div>
                         <div id="options-grid" class="grid grid-cols-1 gap-2">
-                            ${options.map((opt) => `
-                                <button onclick="handlePhase1Choice('${opt === currentTerm.meaning}', this)" class="option-btn w-full text-left p-3 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
-                                    ${opt}
+                            ${options.map(opt => `
+                                <button data-correct="${opt === currentTerm.meaning ? 1 : 0}" onclick="handlePhase1Choice(this)" class="option-btn w-full text-left p-3 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
+                                    ${esc(opt)}
                                 </button>
                             `).join('')}
                         </div>
                         <div id="p1-feedback" class="hidden p-3 rounded-2xl text-xs font-bold"></div>
                     </div>
                 `;
-            } 
+            }
             // PHASE 2: TYPING CHALLENGE
             else if (currentPhase === 'phase2') {
-                if (phase2Queue.length === 0) {
-                    currentPhase = 'phase3';
-                    renderStudyCard();
-                    return;
-                }
+                if (phase2Queue.length === 0) { currentPhase = 'phase3'; renderStudyCard(); return; }
 
                 badge.innerText = `Phase 2: Active Recall Typing (${phase2Queue.length} Left)`;
                 badge.className = "text-xs font-extrabold bg-amber-100 text-amber-700 px-3 py-1 rounded-full";
@@ -357,20 +593,17 @@
                 container.innerHTML = `
                     <div class="space-y-4">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 2: Type English Word</span>
-                        <p class="text-xs font-extrabold text-slate-700">Meaning: "${currentTerm.meaning}"</p>
-                        <input type="text" id="p2-input" placeholder="Type target English word..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-amber-400" onkeydown="if(event.key==='Enter') submitPhase2('${currentTerm.word}')">
-                        <button onclick="submitPhase2('${currentTerm.word}')" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-2xl text-xs">Check Spelling</button>
+                        <p class="text-xs font-extrabold text-slate-700">Meaning: "${esc(currentTerm.meaning)}"</p>
+                        <input type="text" id="p2-input" placeholder="Type target English word..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-amber-400" onkeydown="if(event.key==='Enter'){ isAnswered ? $('p2-next').click() : submitPhase2(); }">
+                        <button id="p2-check" onclick="submitPhase2()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-2xl text-xs">Check Spelling</button>
                         <div id="p2-feedback" class="hidden p-3 rounded-2xl text-xs font-bold"></div>
                     </div>
                 `;
+                setTimeout(() => { const i = $('p2-input'); if (i) i.focus(); }, 50);
             }
-            // PHASE 3: MEANING MATCH
+            // PHASE 3: SELF ASSESSMENT
             else if (currentPhase === 'phase3') {
-                if (phase3Queue.length === 0) {
-                    currentPhase = 'phase4';
-                    renderStudyCard();
-                    return;
-                }
+                if (phase3Queue.length === 0) { currentPhase = 'phase4'; renderStudyCard(); return; }
 
                 badge.innerText = `Phase 3: Speed Recall (${phase3Queue.length} Left)`;
                 badge.className = "text-xs font-extrabold bg-blue-100 text-blue-700 px-3 py-1 rounded-full";
@@ -380,11 +613,12 @@
                     <div class="space-y-4">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 3: Fast Self Assessment</span>
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
-                            <h3 class="text-xl font-black text-slate-800">${currentTerm.word}</h3>
-                            <div id="p3-meaning-box" class="hidden text-xs font-bold text-purple-600 pt-2 border-t">${currentTerm.meaning}</div>
+                            <h3 class="text-xl font-black text-slate-800">${esc(currentTerm.word)}</h3>
+                            <div id="p3-meaning-box" class="hidden text-xs font-bold text-purple-600 pt-2 border-t">${esc(currentTerm.meaning)}</div>
+                            <div id="p3-idiom" class="hidden">${idiomHtml(currentTerm.word, 'neutral')}</div>
                         </div>
                         <div id="p3-actions" class="flex gap-2">
-                            <button onclick="document.getElementById('p3-meaning-box').classList.remove('hidden'); document.getElementById('p3-eval-btns').classList.remove('hidden'); this.classList.add('hidden')" class="w-full bg-blue-500 text-white font-bold py-2.5 rounded-2xl text-xs">Show Answer</button>
+                            <button onclick="revealPhase3(this)" class="w-full bg-blue-500 text-white font-bold py-2.5 rounded-2xl text-xs">Show Answer</button>
                         </div>
                         <div id="p3-eval-btns" class="hidden flex gap-2">
                             <button onclick="finishPhase3Step(false)" class="flex-1 bg-rose-500 text-white font-bold py-2.5 rounded-2xl text-xs">Forgot ❌</button>
@@ -393,7 +627,7 @@
                     </div>
                 `;
             }
-            // PHASE 4: TRANSLATION & IELTS EVALUATION + ADVANCED VERSION
+            // PHASE 4: TRANSLATION & IELTS EVALUATION
             else if (currentPhase === 'phase4') {
                 if (phase4Queue.length === 0) {
                     container.innerHTML = `
@@ -415,8 +649,8 @@
                     <div class="space-y-4">
                         <span class="text-[10px] font-bold text-indigo-500 uppercase">Phase 4: Translate & Upgrade to IELTS Band 8.0</span>
                         <div class="flex items-center gap-2">
-                            <p class="text-xs font-bold text-slate-700">Target word: <b class="text-purple-600">${currentTerm.word}</b> (${currentTerm.meaning})</p>
-                            <button onclick="speakText('${currentTerm.word}')" class="text-purple-600 hover:text-purple-800 text-xs"><i class="fa-solid fa-volume-high"></i></button>
+                            <p class="text-xs font-bold text-slate-700">Target word: <b class="text-purple-600">${esc(currentTerm.word)}</b> (${esc(currentTerm.meaning)})</p>
+                            <button data-say="${esc(currentTerm.word)}" class="text-purple-600 hover:text-purple-800 text-xs"><i class="fa-solid fa-volume-high"></i></button>
                         </div>
 
                         <div class="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100 text-xs font-bold text-indigo-950">
@@ -424,8 +658,8 @@
                         </div>
 
                         <textarea id="p4-trans-input" rows="3" placeholder="Type your English translation..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400"></textarea>
-                        
-                        <button onclick="submitPhase4('${currentTerm.word}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-2xl text-xs">Submit & Get IELTS Assessment</button>
+
+                        <button onclick="submitPhase4()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-2xl text-xs">Submit & Get IELTS Assessment</button>
 
                         <div id="p4-feedback-box" class="hidden space-y-3 border p-4 rounded-2xl"></div>
                     </div>
@@ -433,60 +667,91 @@
             }
         }
 
-        function handlePhase1Choice(isCorrect, btn) {
+        // ---- Phase 1 ----
+        function handlePhase1Choice(btn) {
             if (isAnswered) return;
             isAnswered = true;
 
-            const feedback = document.getElementById('p1-feedback');
-            const term = phase1Queue.shift();
+            const term = phase1Queue[0];
+            const ok = btn.dataset.correct === '1';
 
-            if (isCorrect === 'true') {
-                btn.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
-                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
-                feedback.innerText = "✨ Correct! Moving to next word...";
-            } else {
-                btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
-                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
-                feedback.innerText = `❌ Incorrect. The correct answer was: "${term.meaning}". Re-queued!`;
-                term.status = 'due';
-                phase1Queue.push(term);
-            }
+            document.querySelectorAll('#options-grid .option-btn').forEach(b => {
+                b.disabled = true;
+                b.classList.add('cursor-default');
+                if (b.dataset.correct === '1') b.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+            });
+            if (!ok) btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
 
-            setTimeout(() => { saveState(); renderStudyCard(); }, 1200);
+            const feedback = $('p1-feedback');
+            feedback.className = ok
+                ? "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block"
+                : "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
+            feedback.innerHTML = `
+                <div>${ok ? '✨ Correct!' : `❌ Incorrect. The correct answer was: "${esc(term.meaning)}". Re-queued!`}</div>
+                ${idiomHtml(term.word, ok ? 'correct' : 'wrong')}
+                <button onclick="nextPhase1(${ok})" class="${NEXT_BTN} ${ok ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}">Next ➔</button>
+            `;
         }
 
-        function submitPhase2(correctWord) {
-            const input = document.getElementById('p2-input').value.trim();
-            const feedback = document.getElementById('p2-feedback');
+        function nextPhase1(ok) {
+            const term = phase1Queue.shift();
+            if (!ok) { term.status = 'due'; phase1Queue.push(term); }
+            saveState();
+            renderStudyCard();
+        }
+
+        // ---- Phase 2 ----
+        function submitPhase2() {
+            if (isAnswered) return;
+            const inputEl = $('p2-input');
+            const term = phase2Queue[0];
+            const ok = inputEl.value.trim().toLowerCase() === term.word.toLowerCase();
+            isAnswered = true;
+            inputEl.disabled = true;
+            $('p2-check').classList.add('hidden');
+
+            const feedback = $('p2-feedback');
+            feedback.className = ok
+                ? "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block"
+                : "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
+            feedback.innerHTML = `
+                <div>${ok ? '🎯 Excellent Spelling!' : `❌ Wrong spelling. Correct: "${esc(term.word)}". Re-queued!`}</div>
+                ${idiomHtml(term.word, ok ? 'correct' : 'wrong')}
+                <button id="p2-next" onclick="nextPhase2(${ok})" class="${NEXT_BTN} ${ok ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}">Next ➔</button>
+            `;
+        }
+
+        function nextPhase2(ok) {
             const term = phase2Queue.shift();
+            if (!ok) phase2Queue.push(term);
+            renderStudyCard();
+        }
 
-            if (input.toLowerCase() === correctWord.toLowerCase()) {
-                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
-                feedback.innerText = "🎯 Excellent Spelling!";
-            } else {
-                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
-                feedback.innerText = `❌ Wrong spelling. Correct: "${correctWord}". Re-queued!`;
-                phase2Queue.push(term);
-            }
-
-            setTimeout(() => { renderStudyCard(); }, 1200);
+        // ---- Phase 3 ----
+        function revealPhase3(btn) {
+            $('p3-meaning-box').classList.remove('hidden');
+            $('p3-idiom').classList.remove('hidden');
+            $('p3-eval-btns').classList.remove('hidden');
+            btn.classList.add('hidden');
         }
 
         function finishPhase3Step(remembered) {
             const term = phase3Queue.shift();
-            if(!remembered) phase3Queue.push(term);
+            if (!remembered) phase3Queue.push(term);
             renderStudyCard();
         }
 
-        function submitPhase4(targetWord) {
-            const val = document.getElementById('p4-trans-input').value.trim();
-            if(!val) return;
+        // ---- Phase 4 ----
+        function submitPhase4() {
+            const val = $('p4-trans-input').value.trim();
+            if (!val) return;
 
-            const box = document.getElementById('p4-feedback-box');
+            const targetWord = phase4Queue[0].word;
+            const box = $('p4-feedback-box');
             box.classList.remove('hidden');
 
             const hasTarget = val.toLowerCase().includes(targetWord.toLowerCase());
-            const words = val.split(' ').length;
+            const words = val.split(/\s+/).length;
 
             let band = "6.0";
             let lexicalScore = "6.0";
@@ -517,14 +782,15 @@
                     <div class="bg-white p-2 rounded-xl">Lexical Resource: ${lexicalScore}</div>
                     <div class="bg-white p-2 rounded-xl">Grammatical Range: ${grammarScore}</div>
                 </div>
-                <p class="font-medium text-slate-700">${advice}</p>
+                <p class="font-medium text-slate-700">${esc(advice)}</p>
                 <div class="bg-white p-3 rounded-xl border border-indigo-200 space-y-1">
                     <div class="text-[10px] font-bold text-indigo-600 uppercase">💡 Automatically Suggested Advanced Version (Band 8.0+):</div>
-                    <div class="font-bold text-slate-800">"${advancedVersion}"</div>
-                    <button onclick="speakText('${advancedVersion}')" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold pt-1 flex items-center gap-1">
+                    <div class="font-bold text-slate-800">"${esc(advancedVersion)}"</div>
+                    <button data-say="${esc(advancedVersion)}" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold pt-1 flex items-center gap-1">
                         <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
                     </button>
                 </div>
+                ${idiomHtml(targetWord, hasTarget ? 'correct' : 'wrong')}
                 <button onclick="phase4NextStep()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs mt-2">Next Word ➔</button>
             `;
         }
@@ -538,8 +804,8 @@
         }
 
         function exitStudy() {
-            document.getElementById('view-study-session').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
+            window.speechSynthesis && window.speechSynthesis.cancel();
+            switchMainTab('dashboard');
         }
 
         // ==========================================
@@ -551,34 +817,31 @@
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.continuous = true; // Cho phép thu âm dài, không bị cắt ngang
+            recognition.continuous = true;
             recognition.interimResults = false;
             recognition.lang = 'en-US';
 
-            recognition.onstart = function() {
+            recognition.onstart = function () {
                 isRecording = true;
-                const micBtn = document.getElementById('mic-btn');
-                micBtn.classList.add('mic-active');
-                document.getElementById('mic-status-text').innerText = "Status: 🔴 RECORDING... Speak as long as you want. Click MIC again to STOP.";
-                document.getElementById('mic-status-text').className = "text-[10px] font-bold text-rose-500 animate-pulse";
+                $('mic-btn').classList.add('mic-active');
+                $('mic-status-text').innerText = "Status: 🔴 RECORDING... Speak as long as you want. Click MIC again to STOP.";
+                $('mic-status-text').className = "text-[10px] font-bold text-rose-500 animate-pulse";
             };
 
-            recognition.onresult = function(event) {
+            recognition.onresult = function (event) {
                 let fullTranscript = '';
                 for (let i = 0; i < event.results.length; i++) {
                     fullTranscript += event.results[i][0].transcript + ' ';
                 }
-                document.getElementById('user-speaking-input').value = fullTranscript.trim();
+                $('user-speaking-input').value = fullTranscript.trim();
             };
 
-            recognition.onerror = function(event) {
+            recognition.onerror = function (event) {
                 console.error("Mic error:", event.error);
                 stopMicUI();
             };
 
-            recognition.onend = function() {
-                stopMicUI();
-            };
+            recognition.onend = function () { stopMicUI(); };
         }
 
         function toggleMic() {
@@ -586,153 +849,525 @@
                 alert("Speech recognition is not supported in this browser. Please use Chrome or Safari.");
                 return;
             }
-
             if (isRecording) {
                 recognition.stop();
                 stopMicUI();
             } else {
-                document.getElementById('user-speaking-input').value = '';
+                $('user-speaking-input').value = '';
                 recognition.start();
             }
         }
 
         function stopMicUI() {
             isRecording = false;
-            const micBtn = document.getElementById('mic-btn');
-            if(micBtn) micBtn.classList.remove('mic-active');
-            const statusText = document.getElementById('mic-status-text');
-            if(statusText) {
+            const micBtn = $('mic-btn');
+            if (micBtn) micBtn.classList.remove('mic-active');
+            const statusText = $('mic-status-text');
+            if (statusText) {
                 statusText.innerText = "Status: Mic Stopped. Speech inserted! Press 'Send' to submit.";
                 statusText.className = "text-[10px] font-bold text-emerald-600";
             }
         }
 
         // ==========================================
-        // IELTS SPEAKING EVALUATION LOGIC
+        // SPEAKING ROOM: QUESTION BANK (used by offline mode)
         // ==========================================
+        const SPEAK_BANK = [
+            {
+                q: "Hello! Today let's discuss environmental conservation. What are some effective measures individuals can take to reduce their carbon footprint?",
+                ideas: [
+                    { en: 'Use public transport, cycle or walk instead of driving', vi: 'Đi xe buýt / xe đạp / đi bộ thay vì xe cá nhân' },
+                    { en: 'Cut down on single-use plastic and food waste', vi: 'Giảm đồ nhựa dùng một lần và lãng phí thức ăn' },
+                    { en: 'Save energy at home: switch off appliances, use LED bulbs', vi: 'Tiết kiệm điện: tắt thiết bị, dùng đèn LED' }
+                ],
+                model: "Personally, I believe the most effective step is to rethink how we commute. If more people opted for public transport or cycling, we could substantially cut emissions. On top of that, reducing single-use plastic and food waste is a simple habit that adds up over time."
+            },
+            {
+                q: "Do you think governments or individuals should take more responsibility for protecting the environment?",
+                ideas: [
+                    { en: 'Governments: laws, carbon taxes, subsidies for renewable energy', vi: 'Chính phủ: luật, thuế carbon, trợ giá năng lượng tái tạo' },
+                    { en: 'Individuals: daily habits and consumer choices', vi: 'Cá nhân: thói quen hằng ngày, lựa chọn tiêu dùng' },
+                    { en: 'Both need to cooperate — policies work only if people follow', vi: 'Cần phối hợp cả hai — chính sách chỉ hiệu quả khi người dân làm theo' }
+                ],
+                model: "In my view, it's a shared responsibility, but governments hold the bigger lever. They can introduce carbon taxes, subsidise renewable energy and enforce strict regulations on industry. Individuals can then complement those policies through everyday choices, such as recycling and buying sustainable products."
+            },
+            {
+                q: "How can technology help solve environmental problems?",
+                ideas: [
+                    { en: 'Renewable energy: solar and wind power replacing fossil fuels', vi: 'Năng lượng tái tạo: điện mặt trời, điện gió thay nhiên liệu hóa thạch' },
+                    { en: 'Monitoring: satellites and AI track deforestation and pollution', vi: 'Giám sát: vệ tinh và AI theo dõi phá rừng, ô nhiễm' },
+                    { en: 'Electric vehicles and better recycling technology', vi: 'Xe điện và công nghệ tái chế tốt hơn' }
+                ],
+                model: "Technology is a powerful ally in tackling environmental issues. For instance, solar and wind power are gradually replacing fossil fuels, while satellites and AI can monitor deforestation in real time, allowing authorities to intervene much more swiftly."
+            },
+            {
+                q: "Why do some people ignore environmental problems even though they know about them?",
+                ideas: [
+                    { en: 'Convenience and cost: eco-friendly options can be pricier', vi: 'Tiện lợi và chi phí: đồ thân thiện môi trường thường đắt hơn' },
+                    { en: 'The effects feel distant — "not my problem"', vi: 'Hậu quả cảm giác còn xa — "không phải việc của mình"' },
+                    { en: 'They think one person’s effort makes no difference', vi: 'Nghĩ rằng nỗ lực của một người chẳng thay đổi được gì' }
+                ],
+                model: "I think it mainly comes down to convenience and a sense of distance. Many people feel that climate change is a distant threat, and that their individual actions are merely a drop in the ocean, so they stick with cheaper and more convenient habits."
+            },
+            {
+                q: "Do you think environmental education in schools is effective?",
+                ideas: [
+                    { en: 'It shapes habits early in life', vi: 'Hình thành thói quen từ nhỏ' },
+                    { en: 'Hands-on activities (tree planting, waste sorting) beat theory', vi: 'Hoạt động thực tế (trồng cây, phân loại rác) hiệu quả hơn lý thuyết' },
+                    { en: 'Children can influence their parents at home', vi: 'Trẻ em có thể ảnh hưởng ngược lại bố mẹ' }
+                ],
+                model: "Yes, largely, provided it goes beyond textbooks. When students take part in hands-on activities like tree planting or waste sorting, the lessons stick, and children often bring those habits home, influencing their parents as well."
+            }
+        ];
+
+        // ==========================================
+        // OFFLINE COACH (rule-based)
+        // ==========================================
+        const GRAMMAR_RULES = [
+            [/\bi\b/g, 'I', 'Đại từ "I" luôn viết hoa.'],
+            [/\b(people|children|police|men|women) (is|was)\b/gi, (m, n, v) => `${n} ${v.toLowerCase() === 'is' ? 'are' : 'were'}`, '"people/children/police" là số nhiều → dùng are/were.'],
+            [/\b(he|she|it) (don't|do not)\b/gi, (m, p) => `${p} doesn't`, 'Ngôi thứ 3 số ít dùng "doesn\'t".'],
+            [/\b(I|you|we|they) (doesn't|does not)\b/gi, (m, p) => `${p} don't`, 'Với I/you/we/they dùng "don\'t".'],
+            [/\b(we|they|you) was\b/gi, (m, p) => `${p} were`, 'Với we/they/you dùng "were".'],
+            [/\b(he|she|it) have\b/gi, (m, p) => `${p} has`, 'Ngôi thứ 3 số ít dùng "has".'],
+            [/\bmore (better|worse|easier|harder|bigger|cheaper|faster|healthier)\b/gi, (m, a) => a, 'So sánh hơn của tính từ ngắn không thêm "more".'],
+            [/\bI am agree\b/gi, 'I agree', '"agree" là động từ, không đi với "am".'],
+            [/\bdiscuss about\b/gi, 'discuss', '"discuss" không cần giới từ "about".'],
+            [/\bdepend of\b/gi, 'depend on', 'Cụm đúng: depend on.'],
+            [/\bI am (very |really )?interesting (in|about)\b/gi, (m, adv) => `I am ${adv || ''}interested in`, '"interested" (cảm thấy hứng thú) ≠ "interesting" (thú vị).'],
+            [/\b(advices|informations|peoples|furnitures|knowledges)\b/gi, m => ({ advices: 'advice', informations: 'information', peoples: 'people', furnitures: 'furniture', knowledges: 'knowledge' })[m.toLowerCase()], 'Danh từ này không đếm được / dạng số nhiều sai.'],
+            [/\bthere is (many|several|a lot of people|some people)\b/gi, (m, q) => `there are ${q}`, 'Sau "many/several/people" dùng "there are".'],
+            [/\bvery like\b/gi, 'really like', '"very" không đi trực tiếp với động từ "like".'],
+            [/\bmuch (people|friends|things|cars|students)\b/gi, (m, n) => `many ${n}`, '"much" dùng với danh từ không đếm được; đếm được dùng "many".'],
+            [/\bless (people|cars|students|jobs)\b/gi, (m, n) => `fewer ${n}`, 'Danh từ đếm được dùng "fewer", không dùng "less".'],
+            [/\b(a) ([aeio]\w*)/gi, (m, a, w) => /^(eu|one|once)/i.test(w) ? m : `${a === 'A' ? 'An' : 'an'} ${w}`, 'Trước nguyên âm dùng "an".'],
+            [/\b(\w+) \1\b/gi, (m, w) => /^(very|had|that|so|really|more|much|many|bye)$/i.test(w) ? m : w, 'Từ bị lặp.']
+        ];
+
+        const UPGRADES = [
+            [/\bI (think|believe|feel)( that)?\b/gi, (m, v, t, off) => off === 0 ? 'In my view,' : 'in my view,'],
+            [/\bnowadays\b/gi, (m, off) => off === 0 ? 'In this day and age' : 'in this day and age'],
+            [/\bbecause of\b/gi, 'owing to'],
+            [/\bbecause\b/gi, 'given that'],
+            [/\bvery important\b/gi, 'of paramount importance'],
+            [/\bimportant\b/gi, 'crucial'],
+            [/\bvery bad\b/gi, 'severely detrimental'],
+            [/\bbad for\b/gi, 'detrimental to'],
+            [/\bharmful\b/gi, 'detrimental'],
+            [/\bvery good\b/gi, 'highly beneficial'],
+            [/\bgood for\b/gi, 'beneficial for'],
+            [/\ba lot of people\b/gi, 'a considerable number of people'],
+            [/\bkids\b/gi, 'children'],
+            [/\bshows\b/gi, 'demonstrates'],
+            [/\bmake (the )?(\w+) worse\b/gi, (m, the, w) => `exacerbate ${the || ''}${w}`],
+            [/\bget better\b/gi, 'improve'],
+            [/\bget worse\b/gi, 'deteriorate'],
+            [/\bcut down on\b/gi, 'curb'],
+            [/\bmany\b/gi, (m, off, str) => /(how|so|too|as|very) $/i.test(str.slice(0, off)) ? m : 'numerous']
+        ];
+
+        const ADVANCED_WORDS = /\b(detrimental|mitigate|exacerbate|substantial|crucial|paramount|considerable|furthermore|moreover|consequently|sustainable|implement|tackle|owing to|numerous|beneficial|curb|deteriorate)\b/gi;
+        const CONNECTORS = /\b(however|furthermore|moreover|in addition|for instance|for example|consequently|therefore|on the other hand|as a result)\b/i;
+
+        const USEFUL_PHRASES = [
+            { en: 'It boils down to…', vi: 'Xét cho cùng thì…' },
+            { en: 'To a large extent…', vi: 'Ở mức độ lớn…' },
+            { en: 'A case in point is…', vi: 'Một ví dụ điển hình là…' },
+            { en: 'On the flip side…', vi: 'Ở chiều ngược lại…' },
+            { en: 'It goes without saying that…', vi: 'Không cần nói cũng biết…' },
+            { en: 'Take it with a pinch of salt', vi: 'Nghe vậy thôi, đừng tin hoàn toàn' }
+        ];
+
+        const REACTIONS = ["That's a solid point!", "Interesting perspective.", "I see what you mean.", "Thanks for sharing that."];
+
+        function finalizeSentence(text) {
+            let t = text.replace(/\s+/g, ' ').trim();
+            if (!t) return t;
+            t = t.charAt(0).toUpperCase() + t.slice(1);
+            t = t.replace(/([.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+            if (!/[.!?]$/.test(t)) t += '.';
+            return t;
+        }
+
+        function applyGrammarRules(text) {
+            const list = [];
+            let out = text;
+            GRAMMAR_RULES.forEach(([re, rep, why]) => {
+                out = out.replace(re, (...args) => {
+                    const m = args[0];
+                    const r = typeof rep === 'function' ? rep(...args) : rep;
+                    if (r !== m) list.push({ original: m, fixed: r, why_vi: why });
+                    return r;
+                });
+            });
+            return { text: out, list };
+        }
+
+        function applyUpgrades(text) {
+            let out = text;
+            let changed = false;
+            UPGRADES.forEach(([re, rep]) => {
+                out = out.replace(re, (...args) => {
+                    const r = typeof rep === 'function' ? rep(...args) : rep;
+                    if (r !== args[0]) changed = true;
+                    return r;
+                });
+            });
+            return { text: finalizeSentence(out), changed };
+        }
+
+        function isLowEffort(text) {
+            const wc = text.trim().split(/\s+/).filter(Boolean).length;
+            return wc < 5 || /don'?t know|dont know|no idea|not sure|dunno|không biết|khong biet|\bbí\b/i.test(text);
+        }
+
+        function localCoach(text, stuck) {
+            const item = SPEAK_BANK[speakState.qIndex % SPEAK_BANK.length];
+            const wc = text.trim().split(/\s+/).filter(Boolean).length;
+            let corrections = [];
+            let corrected = '';
+            let advanced = '';
+            let advancedLabel = 'Advanced version (Band 8.0+)';
+
+            if (text && !(stuck && wc < 5)) {
+                const g = applyGrammarRules(text);
+                corrections = g.list;
+                corrected = finalizeSentence(g.text);
+                const up = applyUpgrades(corrected);
+                if (up.changed) {
+                    advanced = up.text;
+                } else {
+                    advanced = item.model;
+                    advancedLabel = 'Sample Band 8 answer cho câu hỏi này';
+                }
+            } else {
+                advanced = item.model;
+                advancedLabel = 'Sample Band 8 answer cho câu hỏi này';
+            }
+
+            const unique = new Set(text.toLowerCase().split(/\s+/)).size;
+            const advCount = (text.match(ADVANCED_WORDS) || []).length;
+            const hasConnector = CONNECTORS.test(text);
+
+            let scores;
+            if (stuck && wc < 5) {
+                scores = { fluency: 4.0, lexical: 4.0, grammar: 4.5, pronunciation: null };
+            } else {
+                const fluency = Math.min(8, 5 + Math.min(2, wc / 25) + (hasConnector ? 0.5 : 0));
+                const lexical = Math.min(8, 5 + 0.5 * Math.min(4, advCount) + (unique / Math.max(1, wc) > 0.7 ? 0.5 : 0));
+                let grammar = Math.max(4, 7 - 0.5 * corrections.length);
+                if (wc < 10) grammar = Math.min(grammar, 5);
+                scores = { fluency: roundHalf(fluency), lexical: roundHalf(lexical), grammar: roundHalf(grammar), pronunciation: null };
+            }
+
+            let tip;
+            if (stuck && wc < 5) tip = 'Đừng để im lặng — dùng công thức: Ý chính → Lý do (because…) → Ví dụ (For instance…). Chỉ cần 2–3 câu là đủ.';
+            else if (wc < 20) tip = 'Câu trả lời hơi ngắn. Thử mở rộng: Ý chính → Lý do → Ví dụ thực tế của bạn.';
+            else if (!hasConnector) tip = 'Ý ổn rồi! Thêm từ nối như Furthermore / However / For instance để mạch lạc hơn (Coherence).';
+            else tip = 'Tốt lắm! Thử thêm 1 idiom hoặc collocation tự nhiên để lên Band 7.5+.';
+
+            let reply;
+            if (stuck) {
+                reply = "No worries, take your time! Let me put it another way: " + item.q.replace(/^Hello! Today let's discuss environmental conservation\. /, '');
+            } else {
+                speakState.qIndex++;
+                reply = pick(REACTIONS) + ' ' + SPEAK_BANK[speakState.qIndex % SPEAK_BANK.length].q.replace(/^Hello! Today let's discuss environmental conservation\. /, '');
+            }
+
+            const i = speakState.turns.length % USEFUL_PHRASES.length;
+            return {
+                examiner_reply: reply,
+                stuck: !!stuck,
+                ideas: stuck ? item.ideas : [],
+                corrections,
+                corrected,
+                advanced,
+                advanced_label: advancedLabel,
+                useful_phrases: [USEFUL_PHRASES[i], USEFUL_PHRASES[(i + 1) % USEFUL_PHRASES.length]],
+                scores,
+                tip_vi: tip
+            };
+        }
+
+        // ==========================================
+        // AI COACH (Gemini / Claude)
+        // ==========================================
+        const COACH_SYSTEM = `You are an IELTS Speaking examiner and a friendly coach for a Vietnamese learner aiming for Band 7+. The learner's answers come from speech-to-text or typing, so ignore missing punctuation and capitalisation.
+Reply with ONE JSON object only (no markdown fences, no extra text) with exactly these keys:
+{
+ "examiner_reply": string. React in at most one short sentence, then ask exactly ONE follow-up question (IELTS Part 3 style). If "stuck" is true, do NOT change topic: rephrase the SAME question more simply instead.
+ "stuck": boolean. True if the learner said they don't know, gave almost nothing, or asked for help.
+ "ideas": array of exactly 3 objects {"en": short idea in simple English, "vi": Vietnamese explanation}. Only when stuck, otherwise [].
+ "corrections": array of {"original": exact wrong fragment from the learner, "fixed": corrected fragment, "why_vi": short Vietnamese explanation}. Grammar, word choice and collocation errors only. [] if none.
+ "corrected": the learner's whole answer fixed but keeping their meaning and level. "" if they gave no answer.
+ "advanced": a natural spoken Band 8.0+ upgrade of the learner's answer (2-4 sentences, keep their ideas, richer vocabulary, collocations, idioms and linking words). If stuck, give a model answer to the current question instead.
+ "useful_phrases": array of 2-3 objects {"en": phrase or idiom they could reuse, "vi": Vietnamese meaning}.
+ "scores": {"fluency": number, "lexical": number, "grammar": number}. IELTS bands in 0.5 steps. Be honest and strict; answers of about 5 words or fewer should not exceed 4.5.
+ "tip_vi": one concrete improvement tip in Vietnamese.
+}`;
+
+        function parseJSONLoose(t) {
+            t = String(t).replace(/```json|```/g, '').trim();
+            const a = t.indexOf('{'), b = t.lastIndexOf('}');
+            if (a < 0 || b < 0) throw new Error('AI trả về định dạng không đọc được');
+            return JSON.parse(t.slice(a, b + 1));
+        }
+
+        async function askLLM(text, stuck) {
+            const model = settings.model || DEFAULT_MODELS[settings.provider];
+            const recent = speakState.turns.slice(-4).map(t => `Examiner: ${t.q}\nLearner: ${t.a || '(asked for help)'}`).join('\n');
+            const prompt =
+`Conversation so far:
+${recent || '(start of session)'}
+
+Current examiner question: ${speakState.currentQuestion}
+stuck_flag_from_app: ${stuck}
+Learner's answer: "${text || '(no answer — the learner pressed the help button)'}"`;
+
+            let raw;
+            if (settings.provider === 'gemini') {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.apiKey },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: COACH_SYSTEM }] },
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: 'application/json', temperature: 0.6 }
+                    })
+                });
+                if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 140)}`);
+                const data = await res.json();
+                raw = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+            } else {
+                const res = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': settings.apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({ model, max_tokens: 1500, system: COACH_SYSTEM, messages: [{ role: 'user', content: prompt }] })
+                });
+                if (!res.ok) throw new Error(`Claude ${res.status}: ${(await res.text()).slice(0, 140)}`);
+                const data = await res.json();
+                raw = (data.content || []).map(c => c.text || '').join('');
+            }
+            const r = parseJSONLoose(raw);
+            r.advanced_label = stuck ? 'Model answer (Band 8+)' : 'Advanced version (Band 8.0+)';
+            return r;
+        }
+
+        // ==========================================
+        // SPEAKING ROOM UI
+        // ==========================================
+        const speakState = { qIndex: 0, turns: [], busy: false, currentQuestion: SPEAK_BANK[0].q };
+
+        function chatScroll() { const c = $('chat-history'); c.scrollTop = c.scrollHeight; }
+
+        function addExaminerMsg(text) {
+            $('chat-history').insertAdjacentHTML('beforeend', `
+                <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold flex justify-between items-start gap-2">
+                    <span>🤖 AI Examiner: "${esc(text)}"</span>
+                    <button data-say="${esc(text)}" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-volume-high"></i></button>
+                </div>`);
+            chatScroll();
+        }
+
+        function addUserMsg(text) {
+            $('chat-history').insertAdjacentHTML('beforeend', `<div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] ml-auto font-semibold">${esc(text)}</div>`);
+            chatScroll();
+        }
+
+        function setBusy(b) {
+            speakState.busy = b;
+            $('send-btn').disabled = b;
+            $('help-btn').disabled = b;
+            $('send-btn').classList.toggle('opacity-50', b);
+            $('help-btn').classList.toggle('opacity-50', b);
+            const old = $('thinking-bubble');
+            if (old) old.remove();
+            if (b) {
+                $('chat-history').insertAdjacentHTML('beforeend', `<div id="thinking-bubble" class="bg-indigo-50 text-indigo-400 p-3 rounded-2xl max-w-[60%] font-semibold">🤖 Examiner is thinking <span class="thinking-dot">●</span><span class="thinking-dot" style="animation-delay:.2s">●</span><span class="thinking-dot" style="animation-delay:.4s">●</span></div>`);
+                chatScroll();
+            }
+        }
+
+        function renderCoach(res, errMsg) {
+            const arr = x => Array.isArray(x) ? x : [];
+            const sc = res.scores || {};
+            const keys = ['fluency', 'lexical', 'grammar', 'pronunciation'];
+            const nums = keys.map(k => typeof sc[k] === 'number' ? sc[k] : null);
+            const valid = nums.filter(v => v !== null);
+            const overall = valid.length ? roundHalf(valid.reduce((a, b) => a + b, 0) / valid.length) : null;
+            const tone = overall === null ? 'slate' : overall < 5 ? 'rose' : overall < 6.5 ? 'amber' : 'emerald';
+            const fmt = v => v === null ? 'n/a' : v.toFixed(1);
+            const tile = (label, v) => `<div class="bg-white p-2 rounded-xl border border-slate-100 font-bold text-[11px]">${label}: <b class="text-slate-700">${fmt(v)}</b></div>`;
+            const box = $('coach-box');
+
+            const ideas = arr(res.ideas);
+            const corrections = arr(res.corrections);
+            const phrases = arr(res.useful_phrases);
+
+            let html = `
+                <div class="flex justify-between items-center gap-2">
+                    <h4 class="text-xs font-extrabold">🎓 Coach Feedback <span class="font-semibold text-slate-400">(${res._mode === 'ai' ? 'AI' : 'Offline · rule-based'})</span></h4>
+                    <span class="text-xs font-black px-2.5 py-1 rounded-lg bg-${tone}-200 text-${tone}-900">${overall === null ? 'Band --' : 'Overall Band ' + overall.toFixed(1)}</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    ${tile('Fluency', nums[0])}${tile('Lexical', nums[1])}${tile('Grammar', nums[2])}${tile('Pronun.', nums[3])}
+                </div>
+                <p class="text-[10px] font-semibold text-slate-400">Pronunciation không chấm được từ văn bản — chỉ tính điểm trung bình 3 tiêu chí còn lại.</p>`;
+
+            if (errMsg) {
+                html += `<div class="bg-white p-2.5 rounded-xl border border-rose-200 text-[11px] font-semibold text-rose-600">⚠️ AI đang lỗi (${esc(errMsg)}) → đã chuyển sang chế độ offline.</div>`;
+            }
+
+            if (res.stuck && ideas.length) {
+                html += `
+                    <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-1.5">
+                        <div class="text-[10px] font-extrabold text-amber-600">💡 Ý tưởng để bạn trả lời</div>
+                        ${ideas.map(i => `<div class="font-semibold text-slate-700">• ${esc(i.en)}<div class="text-[11px] text-slate-400 font-medium ml-3">${esc(i.vi)}</div></div>`).join('')}
+                    </div>`;
+            }
+
+            if (res.corrected) {
+                html += `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+                        <div class="text-[10px] font-extrabold text-rose-500">✏️ Sửa lỗi</div>
+                        ${corrections.length
+                            ? corrections.map(c => `<div class="font-semibold text-slate-700"><span class="line-through text-rose-500">${esc(c.original)}</span> → <span class="text-emerald-600">${esc(c.fixed)}</span><div class="text-[11px] text-slate-400 font-medium">${esc(c.why_vi)}</div></div>`).join('')
+                            : '<div class="font-semibold text-emerald-600">✅ Không thấy lỗi ngữ pháp rõ ràng.</div>'}
+                        <div class="pt-2 border-t border-slate-100">
+                            <div class="text-[10px] font-extrabold text-slate-400">Bản đã sửa</div>
+                            <div class="font-bold text-slate-800">"${esc(res.corrected)}"
+                                <button data-say="${esc(res.corrected)}" class="text-indigo-600 hover:text-indigo-800 ml-1"><i class="fa-solid fa-volume-high"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            if (res.advanced) {
+                html += `
+                    <div class="bg-white p-3 rounded-xl border border-indigo-200 space-y-1">
+                        <div class="text-[10px] font-extrabold text-indigo-600">🚀 ${esc(res.advanced_label || 'Advanced version (Band 8.0+)')}</div>
+                        <div class="font-bold text-slate-800">"${esc(res.advanced)}"</div>
+                        <button data-say="${esc(res.advanced)}" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold pt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-volume-high"></i> Nghe bản nâng cấp
+                        </button>
+                    </div>`;
+            }
+
+            if (phrases.length) {
+                html += `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                        <div class="text-[10px] font-extrabold text-slate-400">📌 Cụm nên dùng lại</div>
+                        ${phrases.map(p => `<div class="font-semibold text-slate-700">${esc(p.en)} <span class="text-[11px] text-slate-400 font-medium">= ${esc(p.vi)}</span></div>`).join('')}
+                    </div>`;
+            }
+
+            if (res.tip_vi) html += `<p class="font-semibold text-slate-700">🎯 ${esc(res.tip_vi)}</p>`;
+
+            box.className = `bg-${tone}-50 border border-${tone}-200 p-4 rounded-2xl space-y-3 text-xs`;
+            box.innerHTML = html;
+            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        async function sendSpeakingResponse(forceHelp) {
+            if (speakState.busy) return;
+            if (isRecording && recognition) { recognition.stop(); }
+
+            const input = $('user-speaking-input');
+            const val = input.value.trim();
+            if (!val && !forceHelp) return;
+
+            const stuck = !!forceHelp || isLowEffort(val);
+            addUserMsg(val || '🙋 Mình bí ý rồi, gợi ý giúp mình nhé!');
+            input.value = '';
+            setBusy(true);
+
+            let res, errMsg = '';
+            try {
+                if (hasAI()) {
+                    res = await askLLM(val, stuck);
+                    res._mode = 'ai';
+                    if (stuck) res.stuck = true;
+                } else {
+                    res = localCoach(val, stuck);
+                    res._mode = 'offline';
+                }
+            } catch (err) {
+                console.error(err);
+                errMsg = err.message || 'unknown error';
+                res = localCoach(val, stuck);
+                res._mode = 'offline';
+            }
+
+            setBusy(false);
+            speakState.turns.push({ q: speakState.currentQuestion, a: val });
+            const reply = res.examiner_reply || 'Could you tell me a bit more about that?';
+            speakState.currentQuestion = reply;
+            addExaminerMsg(reply);
+            renderCoach(res, errMsg);
+        }
+
+        // ---- Speaking timer ----
         let speakingSeconds = 0;
         setInterval(() => {
-            const isSpeakingActive = !document.getElementById('view-speaking').classList.contains('hidden');
-            if(isSpeakingActive) {
+            if (!$('view-speaking').classList.contains('hidden')) {
                 speakingSeconds++;
-                const minsLeft = Math.max(0, 15 - Math.floor(speakingSeconds / 60));
-                document.getElementById('speaking-timer').innerText = `${minsLeft}:00 Remaining`;
-                document.getElementById('goal-speaking').innerText = `${Math.floor(speakingSeconds / 60)}/15 mins`;
+                const rem = Math.max(0, 900 - speakingSeconds);
+                $('speaking-timer').innerText = `${Math.floor(rem / 60)}:${String(rem % 60).padStart(2, '0')} Remaining`;
+                $('goal-speaking').innerText = `${Math.floor(speakingSeconds / 60)}/15 mins`;
             }
         }, 1000);
 
-        function sendSpeakingResponse() {
-            const input = document.getElementById('user-speaking-input');
-            const val = input.value.trim();
-            if(!val) return;
-
-            const chat = document.getElementById('chat-history');
-            chat.innerHTML += `<div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] ml-auto font-semibold">${val}</div>`;
-            input.value = '';
-
-            const words = val.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-            const wordCount = words.length;
-
-            let fluencyScore = 4.0;
-            let lexicalScore = 4.0;
-            let grammarScore = 4.0;
-            let pronunScore = 5.0;
-            let feedback = "";
-            let aiReply = "";
-
-            const isLowEffort = wordCount < 5 || val.toLowerCase().includes("don't know") || val.toLowerCase().includes("dont know");
-
-            if (isLowEffort) {
-                fluencyScore = 3.5;
-                lexicalScore = 3.5;
-                grammarScore = 4.0;
-                pronunScore = 4.5;
-                feedback = "❌ <b>Critique:</b> Answer is extremely brief (Band 3.5-4.0). Extend your answers with reasons or examples.";
-                aiReply = "Try expanding your answer by giving one example from your daily life!";
-            } else {
-                if (wordCount >= 20) {
-                    fluencyScore = 7.5;
-                    lexicalScore = 7.5;
-                    grammarScore = 7.0;
-                    pronunScore = 7.5;
-                    feedback = "✅ <b>Great fluency:</b> Extended response with good structure and vocabulary context.";
-                } else {
-                    fluencyScore = 6.0;
-                    lexicalScore = 6.0;
-                    grammarScore = 6.0;
-                    pronunScore = 6.5;
-                    feedback = "⚠️ <b>Adequate:</b> Good response! Try using transition words (e.g., <i>Furthermore, Consequently</i>).";
-                }
-                aiReply = "That's a solid point! How do you think technology can assist in solving this issue?";
-            }
-
-            const overallBand = ((fluencyScore + lexicalScore + grammarScore + pronunScore) / 4).toFixed(1);
-
-            setTimeout(() => {
-                chat.innerHTML += `
-                    <div class="bg-indigo-100/70 text-indigo-900 p-3 rounded-2xl max-w-[85%] font-semibold flex justify-between items-start gap-2">
-                        <span>🤖 AI Examiner: "${aiReply}"</span>
-                        <button onclick="speakText('${aiReply}')" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-volume-high"></i></button>
-                    </div>`;
-                chat.scrollTop = chat.scrollHeight;
-
-                const evalBox = document.getElementById('ielts-evaluation-box');
-                evalBox.classList.remove('hidden');
-
-                if (isLowEffort) {
-                    evalBox.className = "bg-rose-50 border border-rose-200 p-4 rounded-2xl space-y-2 text-rose-900";
-                    document.getElementById('overall-band').className = "text-xs font-black px-2.5 py-1 rounded-lg bg-rose-200 text-rose-800";
-                } else {
-                    evalBox.className = "bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2 text-emerald-950";
-                    document.getElementById('overall-band').className = "text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-200 text-emerald-800";
-                }
-
-                document.getElementById('overall-band').innerText = `Overall Band ${overallBand}`;
-                document.getElementById('score-fluency').innerText = fluencyScore.toFixed(1);
-                document.getElementById('score-lexical').innerText = lexicalScore.toFixed(1);
-                document.getElementById('score-grammar').innerText = grammarScore.toFixed(1);
-                document.getElementById('score-pronun').innerText = pronunScore.toFixed(1);
-                document.getElementById('ielts-feedback-text').innerHTML = feedback;
-
-            }, 600);
-        }
-
+        // ==========================================
         // MODALS
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        // ==========================================
+        function openModal(id) { $(id).classList.remove('hidden'); }
+        function closeModal(id) { $(id).classList.add('hidden'); }
         function openSetModal() {
-            document.getElementById('select-folder-target').innerHTML = appData.folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            $('select-folder-target').innerHTML = appData.folders.map(f => `<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('');
             openModal('modal-set');
         }
 
         function createFolder() {
-            const name = document.getElementById('input-folder-name').value.trim();
-            if(!name) return;
+            const name = $('input-folder-name').value.trim();
+            if (!name) return;
             appData.folders.push({ id: 'f_' + Date.now(), name });
+            $('input-folder-name').value = '';
             closeModal('modal-folder');
             saveState();
         }
 
         function saveSet() {
-            const folderId = document.getElementById('select-folder-target').value;
-            const title = document.getElementById('input-set-title').value.trim();
-            const text = document.getElementById('input-set-terms').value.trim();
+            const folderId = $('select-folder-target').value;
+            const title = $('input-set-title').value.trim();
+            const text = $('input-set-terms').value.trim();
 
             let terms = [];
-            text.split('\n').forEach(line => {
+            text.split('\n').forEach((line, idx) => {
                 let parts = line.split(/[-;]/);
-                if(parts.length >= 2) {
-                    terms.push({ id: 't_' + Date.now(), word: parts[0].trim(), meaning: parts.slice(1).join(' - ').trim(), lastReviewed: 0, status: 'due' });
+                if (parts.length >= 2) {
+                    terms.push({ id: 't_' + Date.now() + '_' + idx, word: parts[0].trim(), meaning: parts.slice(1).join(' - ').trim(), lastReviewed: 0, status: 'due' });
                 }
             });
 
-            if(!title || !terms.length) return alert('Please fill in title and terms!');
+            if (!title || !terms.length) return alert('Please fill in title and terms!');
             appData.sets.push({ id: 's_' + Date.now(), folderId, title, terms });
+            $('input-set-title').value = '';
+            $('input-set-terms').value = '';
             closeModal('modal-set');
             saveState();
         }
 
+        // ==========================================
+        // INIT
+        // ==========================================
         renderDashboard();
+        updateModeBadge();
+        addExaminerMsg(SPEAK_BANK[0].q);
     </script>
 </body>
 </html>
