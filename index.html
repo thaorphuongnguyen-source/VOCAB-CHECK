@@ -11,7 +11,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         @keyframes floatCat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
         .cat-float { animation: floatCat 3s infinite ease-in-out; }
-        @keyframes pulseRed { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulseRed { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
         .mic-active { animation: pulseRed 1s infinite ease-in-out; background-color: #ef4444 !important; color: white !important; }
     </style>
 </head>
@@ -19,7 +19,7 @@
 
     <div class="max-w-4xl mx-auto space-y-6">
         
-        <!-- HEADER & DUAL STREAK GOALS -->
+        <!-- HEADER & DUAL STREAK GOALS & DUE WORDS -->
         <header class="bg-white p-5 rounded-3xl border border-pink-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-pink-100/70 rounded-2xl border border-pink-300 flex items-center justify-center p-2 cat-float">
@@ -37,7 +37,8 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <!-- KHUNG STREAK -->
                 <div class="bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-2xl flex items-center gap-2">
                     <span class="text-lg">🔥</span>
                     <div>
@@ -46,6 +47,16 @@
                     </div>
                 </div>
 
+                <!-- KHUNG TỪ VỰNG HẾT HẠN (DUE WORDS) -->
+                <div class="bg-rose-50 border border-rose-200 px-3.5 py-2 rounded-2xl flex items-center gap-2">
+                    <span class="text-lg">⏰</span>
+                    <div>
+                        <div class="text-[9px] uppercase font-bold text-rose-500 tracking-wider">Từ Hết Hạn</div>
+                        <div class="text-xs font-extrabold text-rose-700"><span id="total-due-count">0</span> Từ</div>
+                    </div>
+                </div>
+
+                <!-- KHUNG MỤC TIÊU -->
                 <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl space-y-1 text-[11px] font-bold">
                     <div class="flex justify-between gap-3">
                         <span>📚 Vocab Goal:</span>
@@ -78,7 +89,7 @@
             <div id="folder-container" class="space-y-4"></div>
         </div>
 
-        <!-- VIEW 2: AI VOICE SPEAKING ROOM (WITH REAL MIC) -->
+        <!-- VIEW 2: AI VOICE SPEAKING ROOM -->
         <div id="view-speaking" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
@@ -97,22 +108,22 @@
                 </div>
 
                 <div class="flex gap-2 items-center">
-                    <!-- NÚT MICROPHONE BẤM NÓI CHUYỆN -->
-                    <button id="mic-btn" onclick="toggleMic()" class="w-12 h-12 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-2xl flex items-center justify-center text-base font-bold transition flex-shrink-0" title="Click to start speaking">
+                    <!-- NÚT MIC BẤM TAY MỞ/TẮT -->
+                    <button id="mic-btn" onclick="toggleMic()" class="w-12 h-12 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-2xl flex items-center justify-center text-base font-bold transition flex-shrink-0" title="Click to Start/Stop Speaking">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
 
-                    <input type="text" id="user-speaking-input" placeholder="Click mic to speak or type your full answer..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400" onkeydown="if(event.key==='Enter') sendSpeakingResponse()">
+                    <input type="text" id="user-speaking-input" placeholder="Click mic to speak (click again to stop) or type your answer..." class="flex-1 border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400" onkeydown="if(event.key==='Enter') sendSpeakingResponse()">
                     
-                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 text-white font-bold rounded-2xl text-xs flex-shrink-0">Send</button>
+                    <button onclick="sendSpeakingResponse()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs flex-shrink-0">Send</button>
                 </div>
                 
-                <p id="mic-status-text" class="text-[10px] font-bold text-slate-400 italic">Status: Mic idle. Press the mic icon to start speaking.</p>
+                <p id="mic-status-text" class="text-[10px] font-bold text-slate-400 italic">Status: Mic ready. Click mic icon to START speaking.</p>
 
                 <!-- IELTS REAL EVALUATION BOX -->
                 <div id="ielts-evaluation-box" class="hidden border p-4 rounded-2xl space-y-2">
                     <div class="flex justify-between items-center">
-                        <h4 id="ielts-status-title" class="text-xs font-extrabold">IELTS Assessment Result:</h4>
+                        <h4 class="text-xs font-extrabold">IELTS Assessment Result:</h4>
                         <span id="overall-band" class="text-xs font-black px-2.5 py-1 rounded-lg">Band --</span>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] font-bold">
@@ -126,7 +137,7 @@
             </div>
         </div>
 
-        <!-- VIEW 3: STUDY SESSION -->
+        <!-- VIEW 3: STUDY SESSION (TRỌN BỘ 4 PHASES) -->
         <div id="view-study-session" class="hidden space-y-4">
             <div class="flex justify-between items-center">
                 <button onclick="exitStudy()" class="text-xs font-bold text-slate-400 hover:text-slate-700">✕ Exit Practice</button>
@@ -175,17 +186,24 @@
     </div>
 
     <script>
+        // AUDIO AI PHÁT ÂM MƯỢT MÀ
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
-                utterance.rate = 0.9;
+                utterance.rate = 0.88;
+                utterance.pitch = 1.0;
+
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Karen')));
+                if (preferredVoice) utterance.voice = preferredVoice;
+
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        let appData = JSON.parse(localStorage.getItem('myVocabAppDataV7')) || {
+        let appData = JSON.parse(localStorage.getItem('myVocabAppDataV8')) || {
             folders: [{ id: 'f1', name: 'IELTS Core Academic' }],
             sets: [{
                 id: 's1',
@@ -199,25 +217,16 @@
             }]
         };
 
-        const encouragementQuotes = {
-            correct: [
-                { quote: "Keep up the great momentum!", idiom: "💡 'On a roll' — Experiencing a continuous period of success!" },
-                { quote: "Brilliant answer! Your vocabulary store is growing.", idiom: "🌟 'Hit the nail on the head' — Exactly right!" }
-            ],
-            wrong: [
-                { quote: "Don't worry, making mistakes is how we learn!", idiom: "💪 'Every cloud has a silver lining' — Something positive comes from struggle." },
-                { quote: "It's just one mistake! Term moved to end of queue.", idiom: "🌱 'Practice makes perfect' — Keep trying!" }
-            ]
-        };
-
         let currentActiveSet = null;
-        let mcqQueue = [];
-        let translateQueue = [];
+        let phase1Queue = [];
+        let phase2Queue = [];
+        let phase3Queue = [];
+        let phase4Queue = [];
         let currentPhase = 'mcq';
         let isAnswered = false;
 
         function saveState() {
-            localStorage.setItem('myVocabAppDataV7', JSON.stringify(appData));
+            localStorage.setItem('myVocabAppDataV8', JSON.stringify(appData));
             renderDashboard();
         }
 
@@ -234,6 +243,7 @@
         function renderDashboard() {
             const container = document.getElementById('folder-container');
             container.innerHTML = '';
+            let totalDue = 0;
 
             appData.folders.forEach(folder => {
                 const sets = appData.sets.filter(s => s.folderId === folder.id);
@@ -248,6 +258,7 @@
 
                 sets.forEach(set => {
                     const dueCount = set.terms.filter(t => t.status === 'due' || !t.lastReviewed).length;
+                    totalDue += dueCount;
                     html += `
                         <div class="p-4 border border-slate-200 rounded-2xl bg-purple-50/20 space-y-2">
                             <div class="flex justify-between items-start">
@@ -268,6 +279,8 @@
                 html += `</div></div>`;
                 container.innerHTML += html;
             });
+
+            document.getElementById('total-due-count').innerText = totalDue;
         }
 
         function startStudySet(setId, dueOnly) {
@@ -276,9 +289,11 @@
             
             if(termsToStudy.length === 0) return alert('No due terms to review right now!');
 
-            mcqQueue = [...termsToStudy];
-            translateQueue = [...termsToStudy];
-            currentPhase = 'mcq';
+            phase1Queue = [...termsToStudy];
+            phase2Queue = [...termsToStudy];
+            phase3Queue = [...termsToStudy];
+            phase4Queue = [...termsToStudy];
+            currentPhase = 'phase1';
 
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-study-session').classList.remove('hidden');
@@ -290,17 +305,18 @@
             const container = document.getElementById('study-card-container');
             const badge = document.getElementById('study-mode-badge');
 
-            if (currentPhase === 'mcq') {
-                if (mcqQueue.length === 0) {
-                    currentPhase = 'translate';
+            // PHASE 1: MCQ
+            if (currentPhase === 'phase1') {
+                if (phase1Queue.length === 0) {
+                    currentPhase = 'phase2';
                     renderStudyCard();
                     return;
                 }
 
-                badge.innerText = `Phase 1: MCQ Loop (${mcqQueue.length} Remaining)`;
+                badge.innerText = `Phase 1: MCQ Recognition (${phase1Queue.length} Left)`;
                 badge.className = "text-xs font-extrabold bg-purple-100 text-purple-700 px-3 py-1 rounded-full";
 
-                const currentTerm = mcqQueue[0];
+                const currentTerm = phase1Queue[0];
                 let options = [currentTerm.meaning];
                 let others = currentActiveSet.terms.filter(t => t.word !== currentTerm.word);
                 others.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(t => options.push(t.meaning));
@@ -308,114 +324,216 @@
 
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Active Recall Practice</span>
-                            <span class="text-[10px] font-extrabold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">Queue: ${mcqQueue.length} left</span>
-                        </div>
-
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 1: Select Correct Meaning</span>
                         <div class="flex items-center gap-3">
                             <h3 class="text-2xl font-black text-slate-800">${currentTerm.word}</h3>
-                            <button onclick="speakText('${currentTerm.word}')" class="w-9 h-9 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl flex items-center justify-center text-sm transition">
+                            <button onclick="speakText('${currentTerm.word}')" class="w-8 h-8 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-volume-high"></i>
                             </button>
                         </div>
-                        
-                        <div id="options-grid" class="grid grid-cols-1 gap-2.5">
+                        <div id="options-grid" class="grid grid-cols-1 gap-2">
                             ${options.map((opt) => `
-                                <button onclick="handleMCQChoice('${opt === currentTerm.meaning}', this)" class="option-btn w-full text-left p-3.5 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
+                                <button onclick="handlePhase1Choice('${opt === currentTerm.meaning}', this)" class="option-btn w-full text-left p-3 border border-slate-200 hover:border-purple-300 rounded-2xl text-xs font-bold transition">
                                     ${opt}
                                 </button>
                             `).join('')}
                         </div>
+                        <div id="p1-feedback" class="hidden p-3 rounded-2xl text-xs font-bold"></div>
+                    </div>
+                `;
+            } 
+            // PHASE 2: TYPING CHALLENGE
+            else if (currentPhase === 'phase2') {
+                if (phase2Queue.length === 0) {
+                    currentPhase = 'phase3';
+                    renderStudyCard();
+                    return;
+                }
 
-                        <div id="feedback-panel" class="hidden p-4 rounded-2xl text-xs space-y-3">
-                            <div id="feedback-content" class="space-y-1"></div>
-                            <button onclick="nextMCQQuestion()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3 rounded-xl text-xs shadow-md flex items-center justify-center gap-2">
-                                <span>Continue</span> <i class="fa-solid fa-arrow-right"></i>
-                            </button>
+                badge.innerText = `Phase 2: Active Recall Typing (${phase2Queue.length} Left)`;
+                badge.className = "text-xs font-extrabold bg-amber-100 text-amber-700 px-3 py-1 rounded-full";
+
+                const currentTerm = phase2Queue[0];
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 2: Type English Word</span>
+                        <p class="text-xs font-extrabold text-slate-700">Meaning: "${currentTerm.meaning}"</p>
+                        <input type="text" id="p2-input" placeholder="Type target English word..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-bold focus:outline-amber-400" onkeydown="if(event.key==='Enter') submitPhase2('${currentTerm.word}')">
+                        <button onclick="submitPhase2('${currentTerm.word}')" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-2xl text-xs">Check Spelling</button>
+                        <div id="p2-feedback" class="hidden p-3 rounded-2xl text-xs font-bold"></div>
+                    </div>
+                `;
+            }
+            // PHASE 3: MEANING MATCH
+            else if (currentPhase === 'phase3') {
+                if (phase3Queue.length === 0) {
+                    currentPhase = 'phase4';
+                    renderStudyCard();
+                    return;
+                }
+
+                badge.innerText = `Phase 3: Speed Recall (${phase3Queue.length} Left)`;
+                badge.className = "text-xs font-extrabold bg-blue-100 text-blue-700 px-3 py-1 rounded-full";
+
+                const currentTerm = phase3Queue[0];
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Phase 3: Fast Self Assessment</span>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
+                            <h3 class="text-xl font-black text-slate-800">${currentTerm.word}</h3>
+                            <div id="p3-meaning-box" class="hidden text-xs font-bold text-purple-600 pt-2 border-t">${currentTerm.meaning}</div>
+                        </div>
+                        <div id="p3-actions" class="flex gap-2">
+                            <button onclick="document.getElementById('p3-meaning-box').classList.remove('hidden'); document.getElementById('p3-eval-btns').classList.remove('hidden'); this.classList.add('hidden')" class="w-full bg-blue-500 text-white font-bold py-2.5 rounded-2xl text-xs">Show Answer</button>
+                        </div>
+                        <div id="p3-eval-btns" class="hidden flex gap-2">
+                            <button onclick="finishPhase3Step(false)" class="flex-1 bg-rose-500 text-white font-bold py-2.5 rounded-2xl text-xs">Forgot ❌</button>
+                            <button onclick="finishPhase3Step(true)" class="flex-1 bg-emerald-500 text-white font-bold py-2.5 rounded-2xl text-xs">Remembered ✅</button>
                         </div>
                     </div>
                 `;
-            } else if (currentPhase === 'translate') {
-                if (translateQueue.length === 0) {
+            }
+            // PHASE 4: TRANSLATION & IELTS EVALUATION + ADVANCED VERSION
+            else if (currentPhase === 'phase4') {
+                if (phase4Queue.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-8 space-y-3">
-                            <span class="text-4xl">🌟</span>
-                            <h3 class="text-xl font-extrabold text-slate-800">Study Session Completed!</h3>
-                            <p class="text-xs font-semibold text-slate-400">All terms updated in Spaced Repetition memory.</p>
+                            <span class="text-4xl">🎉</span>
+                            <h3 class="text-xl font-extrabold text-slate-800">Completed All 4 Phases!</h3>
+                            <p class="text-xs font-semibold text-slate-400">All words in this set have been stored into deep memory.</p>
                             <button onclick="exitStudy()" class="px-5 py-2.5 bg-purple-500 text-white rounded-2xl text-xs font-bold">Return to Dashboard</button>
                         </div>
                     `;
                     return;
                 }
 
-                badge.innerText = `Phase 2: Translation Practice (${translateQueue.length} Remaining)`;
+                badge.innerText = `Phase 4: IELTS Sentence Context (${phase4Queue.length} Left)`;
                 badge.className = "text-xs font-extrabold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full";
 
-                const currentTerm = translateQueue[0];
+                const currentTerm = phase4Queue[0];
                 container.innerHTML = `
                     <div class="space-y-4">
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase">Sentence Translation Challenge</span>
+                        <span class="text-[10px] font-bold text-indigo-500 uppercase">Phase 4: Translate & Upgrade to IELTS Band 8.0</span>
                         <div class="flex items-center gap-2">
-                            <p class="text-xs font-bold text-slate-700">Translate using target word: <b class="text-purple-600">${currentTerm.word}</b></p>
+                            <p class="text-xs font-bold text-slate-700">Target word: <b class="text-purple-600">${currentTerm.word}</b> (${currentTerm.meaning})</p>
                             <button onclick="speakText('${currentTerm.word}')" class="text-purple-600 hover:text-purple-800 text-xs"><i class="fa-solid fa-volume-high"></i></button>
                         </div>
+
                         <div class="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100 text-xs font-bold text-indigo-950">
-                            "Hành động này mang lại những hậu quả nghiêm trọng đối với hệ sinh thái."
+                            Translate: "Chúng ta cần áp dụng các biện pháp mới để giải quyết vấn đề này."
                         </div>
-                        <textarea id="trans-input-field" rows="3" placeholder="Type your English translation..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-purple-400"></textarea>
-                        <button onclick="submitTranslation()" class="w-full bg-purple-500 text-white font-bold py-2.5 rounded-2xl text-xs">Submit Translation</button>
+
+                        <textarea id="p4-trans-input" rows="3" placeholder="Type your English translation..." class="w-full border border-slate-200 p-3 rounded-2xl text-xs font-semibold focus:outline-indigo-400"></textarea>
+                        
+                        <button onclick="submitPhase4('${currentTerm.word}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-2xl text-xs">Submit & Get IELTS Assessment</button>
+
+                        <div id="p4-feedback-box" class="hidden space-y-3 border p-4 rounded-2xl"></div>
                     </div>
                 `;
             }
         }
 
-        let pendingChoiceIsCorrect = false;
-
-        function handleMCQChoice(isCorrect, btnEl) {
+        function handlePhase1Choice(isCorrect, btn) {
             if (isAnswered) return;
             isAnswered = true;
 
-            pendingChoiceIsCorrect = (isCorrect === 'true');
-            const panel = document.getElementById('feedback-panel');
-            const content = document.getElementById('feedback-content');
-            
-            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+            const feedback = document.getElementById('p1-feedback');
+            const term = phase1Queue.shift();
 
-            if (pendingChoiceIsCorrect) {
-                btnEl.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
-                const res = encouragementQuotes.correct[Math.floor(Math.random() * encouragementQuotes.correct.length)];
-                panel.className = "p-4 rounded-2xl text-xs space-y-3 bg-emerald-50 border border-emerald-200 text-emerald-900";
-                content.innerHTML = `<div class="font-bold text-emerald-800">🎉 Correct!</div><div>${res.quote}</div><div class="text-[11px] opacity-90 font-medium pt-1">${res.idiom}</div>`;
+            if (isCorrect === 'true') {
+                btn.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                feedback.innerText = "✨ Correct! Moving to next word...";
             } else {
-                btnEl.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
-                const res = encouragementQuotes.wrong[Math.floor(Math.random() * encouragementQuotes.wrong.length)];
-                panel.className = "p-4 rounded-2xl text-xs space-y-3 bg-rose-50 border border-rose-200 text-rose-900";
-                content.innerHTML = `<div class="font-bold text-rose-800">💙 Don't give up!</div><div>${res.quote}</div><div class="text-[11px] opacity-90 font-medium pt-1">${res.idiom}</div>`;
+                btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
+                feedback.innerText = `❌ Incorrect. The correct answer was: "${term.meaning}". Re-queued!`;
+                term.status = 'due';
+                phase1Queue.push(term);
             }
 
-            panel.classList.remove('hidden');
+            setTimeout(() => { saveState(); renderStudyCard(); }, 1200);
         }
 
-        function nextMCQQuestion() {
-            const currentTerm = mcqQueue.shift();
+        function submitPhase2(correctWord) {
+            const input = document.getElementById('p2-input').value.trim();
+            const feedback = document.getElementById('p2-feedback');
+            const term = phase2Queue.shift();
 
-            if (pendingChoiceIsCorrect) {
-                currentTerm.status = 'mastered';
-                currentTerm.lastReviewed = Date.now();
+            if (input.toLowerCase() === correctWord.toLowerCase()) {
+                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                feedback.innerText = "🎯 Excellent Spelling!";
             } else {
-                currentTerm.status = 'due';
-                mcqQueue.push(currentTerm);
+                feedback.className = "p-3 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 block";
+                feedback.innerText = `❌ Wrong spelling. Correct: "${correctWord}". Re-queued!`;
+                phase2Queue.push(term);
             }
 
-            saveState();
+            setTimeout(() => { renderStudyCard(); }, 1200);
+        }
+
+        function finishPhase3Step(remembered) {
+            const term = phase3Queue.shift();
+            if(!remembered) phase3Queue.push(term);
             renderStudyCard();
         }
 
-        function submitTranslation() {
-            const text = document.getElementById('trans-input-field').value.trim();
-            if(!text) return;
-            translateQueue.shift();
+        function submitPhase4(targetWord) {
+            const val = document.getElementById('p4-trans-input').value.trim();
+            if(!val) return;
+
+            const box = document.getElementById('p4-feedback-box');
+            box.classList.remove('hidden');
+
+            const hasTarget = val.toLowerCase().includes(targetWord.toLowerCase());
+            const words = val.split(' ').length;
+
+            let band = "6.0";
+            let lexicalScore = "6.0";
+            let grammarScore = "6.5";
+            let advice = "Good effort! You conveyed the main idea.";
+            let advancedVersion = `We ought to adopt novel measures to address this pressing issue effectively.`;
+
+            if (hasTarget && words >= 8) {
+                band = "7.5";
+                lexicalScore = "7.5";
+                grammarScore = "7.5";
+                advice = `Great execution! You successfully integrated the target vocabulary '${targetWord}' seamlessly.`;
+                advancedVersion = `It is imperative that we implement innovative strategies to mitigate this critical problem.`;
+            } else if (!hasTarget) {
+                band = "5.5";
+                lexicalScore = "5.0";
+                grammarScore = "6.0";
+                advice = `⚠️ Note: You forgot to include the target word '${targetWord}' in your translation.`;
+            }
+
+            box.className = "space-y-3 border p-4 rounded-2xl bg-indigo-50/50 border-indigo-200 text-xs";
+            box.innerHTML = `
+                <div class="flex justify-between items-center border-b border-indigo-100 pb-2">
+                    <span class="font-extrabold text-indigo-900">IELTS Writing & Translation Feedback:</span>
+                    <span class="font-black bg-indigo-600 text-white px-2.5 py-0.5 rounded-lg">Est. Band ${band}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-bold">
+                    <div class="bg-white p-2 rounded-xl">Lexical Resource: ${lexicalScore}</div>
+                    <div class="bg-white p-2 rounded-xl">Grammatical Range: ${grammarScore}</div>
+                </div>
+                <p class="font-medium text-slate-700">${advice}</p>
+                <div class="bg-white p-3 rounded-xl border border-indigo-200 space-y-1">
+                    <div class="text-[10px] font-bold text-indigo-600 uppercase">💡 Automatically Suggested Advanced Version (Band 8.0+):</div>
+                    <div class="font-bold text-slate-800">"${advancedVersion}"</div>
+                    <button onclick="speakText('${advancedVersion}')" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold pt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
+                    </button>
+                </div>
+                <button onclick="phase4NextStep()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs mt-2">Next Word ➔</button>
+            `;
+        }
+
+        function phase4NextStep() {
+            const term = phase4Queue.shift();
+            term.status = 'mastered';
+            term.lastReviewed = Date.now();
+            saveState();
             renderStudyCard();
         }
 
@@ -425,7 +543,7 @@
         }
 
         // ==========================================
-        // REAL MICROPHONE SPEECH RECOGNITION LOGIC
+        // MICROPHONE CONTROL (MANUAL START & STOP)
         // ==========================================
         let recognition = null;
         let isRecording = false;
@@ -433,7 +551,7 @@
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.continuous = false;
+            recognition.continuous = true; // Cho phép thu âm dài, không bị cắt ngang
             recognition.interimResults = false;
             recognition.lang = 'en-US';
 
@@ -441,35 +559,31 @@
                 isRecording = true;
                 const micBtn = document.getElementById('mic-btn');
                 micBtn.classList.add('mic-active');
-                document.getElementById('mic-status-text').innerText = "Status: Listening... Speak your answer now!";
+                document.getElementById('mic-status-text').innerText = "Status: 🔴 RECORDING... Speak as long as you want. Click MIC again to STOP.";
                 document.getElementById('mic-status-text').className = "text-[10px] font-bold text-rose-500 animate-pulse";
             };
 
             recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-speaking-input').value = transcript;
-                document.getElementById('mic-status-text').innerText = "Status: Voice captured! Pressing send...";
-                
-                // Tự động gửi câu trả lời sau khi nhận diện xong
-                sendSpeakingResponse();
+                let fullTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    fullTranscript += event.results[i][0].transcript + ' ';
+                }
+                document.getElementById('user-speaking-input').value = fullTranscript.trim();
             };
 
             recognition.onerror = function(event) {
                 console.error("Mic error:", event.error);
                 stopMicUI();
-                document.getElementById('mic-status-text').innerText = "Status: Error capturing audio. Please try typing.";
             };
 
             recognition.onend = function() {
                 stopMicUI();
             };
-        } else {
-            console.warn("Speech recognition not supported in this browser.");
         }
 
         function toggleMic() {
             if (!recognition) {
-                alert("Speech recognition is not supported in your browser. Please use Chrome or Safari.");
+                alert("Speech recognition is not supported in this browser. Please use Chrome or Safari.");
                 return;
             }
 
@@ -477,6 +591,7 @@
                 recognition.stop();
                 stopMicUI();
             } else {
+                document.getElementById('user-speaking-input').value = '';
                 recognition.start();
             }
         }
@@ -487,8 +602,8 @@
             if(micBtn) micBtn.classList.remove('mic-active');
             const statusText = document.getElementById('mic-status-text');
             if(statusText) {
-                statusText.innerText = "Status: Mic idle. Press the mic icon to start speaking.";
-                statusText.className = "text-[10px] font-bold text-slate-400 italic";
+                statusText.innerText = "Status: Mic Stopped. Speech inserted! Press 'Send' to submit.";
+                statusText.className = "text-[10px] font-bold text-emerald-600";
             }
         }
 
@@ -525,36 +640,30 @@
             let feedback = "";
             let aiReply = "";
 
-            const isLowEffort = wordCount < 5 || val.toLowerCase().includes("don't know") || val.toLowerCase().includes("dont know") || val.toLowerCase().includes("no idea");
+            const isLowEffort = wordCount < 5 || val.toLowerCase().includes("don't know") || val.toLowerCase().includes("dont know");
 
             if (isLowEffort) {
                 fluencyScore = 3.5;
                 lexicalScore = 3.5;
                 grammarScore = 4.0;
                 pronunScore = 4.5;
-                feedback = "❌ <b>Critique:</b> Answer is extremely brief or lacks content (IELTS Band 3.5-4.0). You must extend your response by giving reasons, examples, or personal opinions rather than staying silent.";
-                aiReply = "I see. Even if you aren't sure, try guessing or talking about why it's difficult for individuals to reduce carbon emissions. Give it another try!";
+                feedback = "❌ <b>Critique:</b> Answer is extremely brief (Band 3.5-4.0). Extend your answers with reasons or examples.";
+                aiReply = "Try expanding your answer by giving one example from your daily life!";
             } else {
-                if (wordCount >= 25) {
+                if (wordCount >= 20) {
                     fluencyScore = 7.5;
-                    lexicalScore = 7.0;
+                    lexicalScore = 7.5;
                     grammarScore = 7.0;
                     pronunScore = 7.5;
-                    feedback = "✅ <b>Good coherence:</b> You provided a detailed explanation with adequate length. Consider using more complex academic connectives (e.g., <i>Consequently, Furthermore</i>) to reach Band 8.0.";
-                } else if (wordCount >= 12) {
+                    feedback = "✅ <b>Great fluency:</b> Extended response with good structure and vocabulary context.";
+                } else {
                     fluencyScore = 6.0;
                     lexicalScore = 6.0;
                     grammarScore = 6.0;
                     pronunScore = 6.5;
-                    feedback = "⚠️ <b>Adequate response:</b> Good effort! However, to boost your score above Band 6.5, try to elaborate further using conditional sentences (e.g., <i>'If people were to adopt...'</i>).";
-                } else {
-                    fluencyScore = 5.0;
-                    lexicalScore = 5.0;
-                    grammarScore = 5.0;
-                    pronunScore = 5.5;
-                    feedback = "⚠️ <b>Too Short:</b> Your sentence is grammatically acceptable but too short for Part 3 IELTS Speaking standards. Aim for at least 3-4 full sentences.";
+                    feedback = "⚠️ <b>Adequate:</b> Good response! Try using transition words (e.g., <i>Furthermore, Consequently</i>).";
                 }
-                aiReply = "That's a very valid point! How do you think local governments can support citizens in making these eco-friendly choices?";
+                aiReply = "That's a solid point! How do you think technology can assist in solving this issue?";
             }
 
             const overallBand = ((fluencyScore + lexicalScore + grammarScore + pronunScore) / 4).toFixed(1);
@@ -585,7 +694,7 @@
                 document.getElementById('score-pronun').innerText = pronunScore.toFixed(1);
                 document.getElementById('ielts-feedback-text').innerHTML = feedback;
 
-            }, 800);
+            }, 600);
         }
 
         // MODALS
